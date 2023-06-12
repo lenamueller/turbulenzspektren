@@ -1,10 +1,14 @@
 rm(list=ls())
-project_path <- "Documents/Studium/Master/VertiefungspraxisMeteo"
+setwd("Documents/Studium/Master/VertiefungspraxisMeteo")
 
-# setwd("Documents/Studium/Master/VertiefungspraxisMeteo")
-
-# library("ggplot2")
-# library("TTR")
+fn_23_04_12 <- "data/expe/2023/20230412-0714-Log.txt"
+fn_23_04_22 <- "data/expe/2023/20230422-0912-Log.txt"
+fn_23_04_25 <- "data/expe/2023/20230425-0801-Log.txt"
+fn_23_05_08 <- "data/expe/2023/20230508-1153-Log.txt"
+fn_23_05_31 <- "data/expe/2023/20230531-0929-Log.txt"
+fn_23_06_01 <- "data/expe/2023/20230601-0556-Log.txt"
+fn_23_06_04 <- "data/expe/2023/20230604-0810-Log.txt"
+fn_23_06_06 <- "data/expe/2023/20230606-0708-Log.txt"
 
 
 read_sensor_expe <- function(fn, sensorid) {
@@ -66,13 +70,17 @@ plot_sensor_expe <- function(sensor_data, plot_fn) {
     # Plotting dirunal curves and histogram of temperature, rel. humidity and 
     # pressure.
     
-    png(file=plot_fn, width=1000, height=600)
-        
+    png(file=plot_fn, width=1000, height=600, res = 100)
+    
     x = sensor_data$datetime
+    date <- as.Date(x[1], "CEST")
+    start_time <- as.POSIXct(paste(date, "07:00", sep=" ")) 
+    end_time <- as.POSIXct(paste(date, "16:00", sep=" ")) 
     
     par(mfrow=c(2,3))
     plot(x, sensor_data$t, type = "line", frame = FALSE, pch = 1, col = "blue", 
-         xlab = "time [UTC]", ylab = "temperature [°C]")
+         xlab = "time [UTC]", ylab = "temperature [°C]",
+         xlim=c(start_time, end_time))
     plot(x, sensor_data$rh, type = "line", frame = FALSE, pch = 1, col = "blue", 
          xlab = "time [UTC]", ylab = "rel. humidity [%]")
     plot(x, sensor_data$p, type = "line", frame = FALSE, pch = 1, col = "blue", 
@@ -88,19 +96,17 @@ plot_sensor_expe <- function(sensor_data, plot_fn) {
     dev.off()
 }
 
-fn_23_06_04 <- "data/expe/20230604-0810-Log.txt"
-fn_23_05_31 <- "data/expe/20230531-0929-Log.txt"
-fn_23_06_06 <- "data/expe/20230606-0708-Log.txt"
 
-sensor0 <- read_sensor_expe(fn_23_06_04, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_06_04.png")
-
+sensor0 <- read_sensor_expe(fn_23_04_12, sensorid=0)
+plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_04_12.png")
+sensor0 <- read_sensor_expe(fn_23_04_22, sensorid=0)
+plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_04_22.png")
+sensor0 <- read_sensor_expe(fn_23_05_08, sensorid=0)
+plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_05_08.png")
 sensor0 <- read_sensor_expe(fn_23_05_31, sensorid=0)
 plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_05_31.png")
-
-sensor0 <- read_sensor_expe(fn_23_06_06, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_06_06.png")
-
+sensor0 <- read_sensor_expe(fn_23_06_04, sensorid=0)
+plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_06_04.png")
 
 
 # time series decomposition
