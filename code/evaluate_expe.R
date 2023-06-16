@@ -1,15 +1,14 @@
 rm(list=ls())
 setwd("Documents/Studium/Master/VertiefungspraxisMeteo")
 
-fn_23_04_12 <- "data/expe/2023/20230412-0714-Log.txt"
-fn_23_04_22 <- "data/expe/2023/20230422-0912-Log.txt"
-fn_23_04_25 <- "data/expe/2023/20230425-0801-Log.txt"
-fn_23_05_08 <- "data/expe/2023/20230508-1153-Log.txt"
-fn_23_05_31 <- "data/expe/2023/20230531-0929-Log.txt"
-fn_23_06_01 <- "data/expe/2023/20230601-0556-Log.txt"
-fn_23_06_04 <- "data/expe/2023/20230604-0810-Log.txt"
-fn_23_06_06 <- "data/expe/2023/20230606-0708-Log.txt"
 
+fns = c(
+    "data/expe/2023/20230412-0714-Log.txt", 
+    "data/expe/2023/20230422-0912-Log.txt",
+    "data/expe/2023/20230508-1153-Log.txt",
+    "data/expe/2023/20230531-0929-Log.txt",
+    "data/expe/2023/20230604-0810-Log.txt"
+    )
 
 read_sensor_expe <- function(fn, sensorid) {
     # Reading single Sensor data from EXPE
@@ -66,49 +65,93 @@ read_sensor_expe <- function(fn, sensorid) {
     }
 } 
 
+Nyquist_frequency <- function(sensor_data) {
+    return(length(sensor_data)/2)
+}
+
+norm <- function(complex_number) {
+    return(Re(complex_number)**2 + Im(complex_number)**2)
+}
+
+mult_2 <- function(value){
+    return(value*2)
+}
+
+calc_fft <- function(sensor_data) {
+    
+    # Calculate the Nyquist frequency
+    n_f <- Nyquist_frequency(sensor_data)
+    
+    # Calculate the FFT -> complex numbers
+    fft_values <- fft(sensor_data, inverse=FALSE)
+    
+    # Calculate the square of the norm of each complex number
+    fft_normed <- lapply(fft_values, norm)
+    
+    # Remove first element (mean) and numbers beyond Nyquist frequency
+    fft_normed_sub <- fft_normed[c(2:n_f)]
+    
+    # Multiply by 2
+    fft_2 = lapply(fft_normed_sub, mult_2)
+    
+    return(fft_2)
+}
+
+df_subset <- function(sensor_data, start_date, end_date) {
+    sensor_data <- subset(sensor_data, datetime > start_date)
+    sensor_data <- subset(sensor_data, datetime < end_date)
+    return(sensor_data)
+}
+
 plot_sensor_expe <- function(sensor_data, plot_fn) {
     # Plotting dirunal curves and histogram of temperature, rel. humidity and 
     # pressure.
     
+    # read date
+    date <- as.Date(sensor_data$datetime[1], "CEST")
+    
+    # subset data to one hour
+    sensor_data <-df_subset(
+                    sensor_data,
+                    start_date = as.POSIXct(paste(date, "11:00", sep=" ")),
+                    end_date = as.POSIXct(paste(date, "12:00", sep=" ")) 
+                    )
+    
+    # start plotting
     png(file=plot_fn, width=1000, height=600, res = 100)
-    
-    x = sensor_data$datetime
-    date <- as.Date(x[1], "CEST")
-    start_time <- as.POSIXct(paste(date, "07:00", sep=" ")) 
-    end_time <- as.POSIXct(paste(date, "16:00", sep=" ")) 
-    
     par(mfrow=c(2,3))
-    plot(x, sensor_data$t, type = "line", frame = FALSE, pch = 1, col = "blue", 
-         xlab = "time [UTC]", ylab = "temperature [°C]",
-         xlim=c(start_time, end_time))
-    plot(x, sensor_data$rh, type = "line", frame = FALSE, pch = 1, col = "blue", 
+    
+    # time series
+    plot(sensor_data$datetime, sensor_data$t, type = "line", frame = FALSE, pch = 1, col = "blue", 
+         xlab = "time [UTC]", ylab = "temperature [°C]")
+    plot(sensor_data$datetime, sensor_data$rh, type = "line", frame = FALSE, pch = 1, col = "blue", 
          xlab = "time [UTC]", ylab = "rel. humidity [%]")
-    plot(x, sensor_data$p, type = "line", frame = FALSE, pch = 1, col = "blue", 
+    plot(sensor_data$datetime, sensor_data$p, type = "line", frame = FALSE, pch = 1, col = "blue", 
          xlab = "time [UTC]", ylab = "pressure [hPa]")
-    hist(sensor_data$t, type = "line", frame = FALSE, pch = 1, col = "blue", 
-         xlab = "temperature [°C]", ylab = "frequency", main="")
-    hist(sensor_data$rh, type = "line", frame = FALSE, pch = 1, col = "blue", 
-         xlab = "rel. humidity [%]", ylab = "frequency", main="")
-    hist(sensor_data$p, type = "line", frame = FALSE, pch = 1, col = "blue", 
-         xlab = "pressure [hPa]", ylab = "frequency", main="")
+
+    # frequencies
+    fft_data <- calc_fft(sensor_data$t)
+    plot(c(2:length(fft_data)), fft_data[2:length(fft_data)], t = "h", log="xy", 
+         xlab = "n", ylab = "strength")
+    fft_data <- calc_fft(sensor_data$rh)
+    plot(c(2:length(fft_data)), fft_data[2:length(fft_data)], t = "h", log="xy", 
+         xlab = "n", ylab = "strength")
+    fft_data <- calc_fft(sensor_data$p)
+    plot(c(2:length(fft_data)), fft_data[2:length(fft_data)], t = "h", log="xy", 
+         xlab = "n", ylab = "strength")
     
     # Clear the current plot
     dev.off()
 }
 
 
-sensor0 <- read_sensor_expe(fn_23_04_12, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_04_12.png")
-sensor0 <- read_sensor_expe(fn_23_04_22, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_04_22.png")
-sensor0 <- read_sensor_expe(fn_23_05_08, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_05_08.png")
-sensor0 <- read_sensor_expe(fn_23_05_31, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_05_31.png")
-sensor0 <- read_sensor_expe(fn_23_06_04, sensorid=0)
-plot_sensor_expe(sensor_data=sensor0, plot_fn="images/Plot_23_06_04.png")
+fns_plot = c("images/Plot_23_04_12.png", "images/Plot_23_04_22.png", 
+             "images/Plot_23_05_08.png", "images/Plot_23_05_31.png", 
+             "images/Plot_23_06_04.png")
 
+for (i in 1:length(fns)) {
+    print(i)
+    sensor0 <- read_sensor_expe(fns[i], sensorid=0)
+    plot_sensor_expe(sensor_data=sensor0, plot_fn=fns_plot[i])
+}
 
-# time series decomposition
-# t_components <- decompose(sensor0$t)
-# plot(t_components)
