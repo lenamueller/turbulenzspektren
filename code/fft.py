@@ -9,31 +9,28 @@ from Datasets import ExpeDataset, SonicDataset
 # setup
 # ----------------------------------------------------------------------------
 
-plot_fn = "FFT"
+plot_fn = "FFT_ES_ES" # FFT_GAS_ES, FFT_ES_ES
 
-# data paths
-expe_fns = [ 
-    "data/2023_07_08/20230708-1329-Log.txt",
-    "data/2023_07_11/20230711-0504-Log.txt"
-    ]
+# data paths and temporal frame of measurements
+match plot_fn:
 
-sonic_fns = [
-    "data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat",
-    "data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
-]
-
-# day 1
-## Ermischstraße: 09:30:00 - 17:00:00
-d1_start_date = "2023-07-08 15:00:00"
-d1_end_date = "2023-07-08 16:00:00"
-
-# day 2:
-## Gustav-Adolf-Straße: 11:00:00 - 12:00:00
-## Ermischstraße: 12:30:00 - 13:30:00
-# d2_start_date = "2023-07-11 12:30:00"
-# d2_end_date = "2023-07-11 13:30:00"
-d2_start_date = "2023-07-11 11:00:00"
-d2_end_date = "2023-07-11 12:00:00"
+    case "FFT_ES_ES":
+        expe_fns = ["data/2023_07_08/20230708-1329-Log.txt", "data/2023_07_11/20230711-0504-Log.txt"]
+        sonic_fns = ["data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", "data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"]
+        
+        d1_start_date = "2023-07-08 15:00:00" # ES d1
+        d1_end_date =   "2023-07-08 16:00:00" # ES d1
+        d2_start_date = "2023-07-11 12:36:00" # ES d2
+        d2_end_date =   "2023-07-11 13:36:00" # ES d2
+        
+    case "FFT_GAS_ES":
+        expe_fns = ["data/2023_07_11/20230711-0504-Log.txt", "data/2023_07_11/20230711-0504-Log.txt"]
+        sonic_fns = ["data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", "data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"]
+        
+        d1_start_date = "2023-07-11 11:00:00" # GAS d2
+        d1_end_date =   "2023-07-11 12:00:00" # GAS d2
+        d2_start_date = "2023-07-11 12:36:00" # ES d2
+        d2_end_date =   "2023-07-11 13:36:00" # ES d2
 
 # ----------------------------------------------------------------------------
 # create Dataset objects
@@ -97,7 +94,7 @@ for col_i in [0,1]:
                       sonic_data[col_i].wind_spectrum_smooth, **smooth_spec_kw_args)
     
     # range from 1 min to 10 min
-    for row_i in [1, 3]:
+    for row_i in [1, 3, 5]:
         ax[row_i, col_i].axvspan(1/60, 1/600, alpha=0.1, color="grey", label="1 min - 10 min")
     
     # plot setup
@@ -124,6 +121,7 @@ for col_i in [0,1]:
         ax[row_i,col_i].set_ylabel("Magnitude Spectrum")
         ax[row_i,col_i].set_xlim(0, 0.5)
         ax[row_i, col_i].set_yscale("log")
+        # ax[row_i, col_i].set_xscale("log")
 
         # add secondary x axis with period in seconds below the frequency axis
         ax2 = ax[row_i,col_i].twiny()
@@ -145,8 +143,6 @@ for col_i in [0,1]:
         ax[row_i, col_i].grid(True)
         ax[row_i, col_i].legend(loc="upper right")
         ax[row_i, col_i].set_ylim(y_limits[row_i])
-
-    
     
 plt.tight_layout()
 plt.savefig(f"images/{plot_fn}.png", dpi=300, bbox_inches="tight")
