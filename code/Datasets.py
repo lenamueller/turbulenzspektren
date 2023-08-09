@@ -115,6 +115,26 @@ class ExpeDataset:
         self.t_spectrum_smooth = np.convolve(self.spectrum_t, kernel, mode='valid')
         self.rF_spectrum_smooth = np.convolve(self.spectrum_rF, kernel, mode='valid')
         self.p_spectrum_smooth = np.convolve(self.spectrum_p, kernel, mode='valid')
+    
+    def average(self, var, x: int) -> list:
+        """Calculate the average of the time series of variable var in intervals of x minutes."""
+        windowsize = x*60
+        avg = []
+        for i in range(0, len(self.time_raw), windowsize):
+            new_values = [np.mean(var[i:i+windowsize])] * windowsize
+            avg.extend(new_values)
+        return avg
+
+    # calculate the rolling average with window size x minutes having same number of data points as ds.time_raw
+    def rolling_mean(self, var, kernel_size: int) -> list:
+        """Calculate the rolling mean of the time series of variable var with a kernel size of x minutes."""
+        roll_mean = []
+        for i in range(len(var)):
+            if i < kernel_size:
+                roll_mean.append(np.mean(var[0:i+1]))
+            else:
+                roll_mean.append(np.mean(var[i-kernel_size:i]))
+        return roll_mean
 
 class SonicDataset():
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
@@ -206,3 +226,23 @@ class SonicDataset():
         kernel = np.ones(self.kernel_size) / self.kernel_size
         self.wind_spectrum_smooth = np.convolve(self.wind_spectrum, kernel, mode='valid')
         self.t_spectrum_smooth = np.convolve(self.t_spectrum, kernel, mode='valid')
+
+    def average(self, var, x: int) -> list:
+        """Calculate the average of the time series of variable var in intervals of x minutes."""
+        windowsize = x*60
+        avg = []
+        for i in range(0, len(self.time_raw), windowsize):
+            new_values = [np.mean(var[i:i+windowsize])] * windowsize
+            avg.extend(new_values)
+        return avg
+
+    # calculate the rolling average with window size x minutes having same number of data points as ds.time_raw
+    def rolling_mean(self, var, kernel_size: int) -> list:
+        """Calculate the rolling mean of the time series of variable var with a kernel size of x minutes."""
+        roll_mean = []
+        for i in range(len(var)):
+            if i < kernel_size:
+                roll_mean.append(np.mean(var[0:i+1]))
+            else:
+                roll_mean.append(np.mean(var[i-kernel_size:i]))
+        return roll_mean
