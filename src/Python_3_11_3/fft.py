@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from Datasets import ExpeDataset, SonicDataset
-
+from setup import metadata
 
 np.seterr(divide='ignore')
 
@@ -16,29 +16,11 @@ print("Processing arguments", sys.argv)
 
 measuring_situation = sys.argv[1]
 measuring_device = sys.argv[2]
+
+expe_fn, sonic_fn, start_date, end_date, date = metadata(measuring_situation)
+
 durations_min = [1, 2, 3, 5, 10, 15, 30]
-kernel_size = 12
-
-match measuring_situation:
-    case "ES_2023_07_08":
-        expe_fn = "../data/2023_07_08/20230708-1329-Log.txt"
-        sonic_fn = "../data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat"
-        start_date = "2023-07-08 15:00:00"
-        end_date =   "2023-07-08 16:00:00"
-        date = "08.07.2023"
-    case "ES_2023_07_11":
-        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
-        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
-        start_date = "2023-07-11 12:36:00"
-        end_date =   "2023-07-11 13:36:00"
-        date = "11.07.2023"
-    case "GAS_2023_07_11":
-        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
-        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
-        start_date = "2023-07-11 11:00:00"
-        end_date =   "2023-07-11 12:00:00"
-        date = "11.07.2023"
-
+kernel_size = 12 
 freqs = {"SONIC": "$\Delta t$ = 0.5 s", "EXPE": "$\Delta t$ = 1.0 s"}
 
 # ----------------------------------------------------------------------------
@@ -62,7 +44,7 @@ det_kw_args =           {"lw": lw, "alpha": 0.8, "c": "b"}
 spec_kw_args =          {"lw": 0.5, "alpha": 0.5, "c": "darkgrey"}
 smooth_spec_kw_args =   {"lw": 1.0, "alpha": 1.0, "c": "r"}
 scat_kw_args =          {"s": 1.0, "alpha": 0.3, "c": "darkgrey"}
-range_kw_args =         {"alpha": 0.1, "color": "grey"}
+range_kw_args =         {"alpha": 0.1, "color": "orange"}
     
 
 fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(20,10))
@@ -160,7 +142,7 @@ for col_i in range(3):
         # ax[0,0].set_title(f"Date: {date}\n\n{measuring_device} data ({freqs[measuring_device]})", fontweight='bold')
         
         if row_i == 0: # time series plots
-            ax[row_i, col_i].set_xlabel("Time [CET]")
+            ax[row_i, col_i].set_xlabel("Time [UTC]")
             ax[row_i, col_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
             ax[row_i, col_i].set_xlim(ds.time_raw.tolist()[0], ds.time_raw.tolist()[-1])
         
@@ -169,7 +151,7 @@ for col_i in range(3):
             ax[row_i, col_i].set_ylabel("Magnitude Spectrum")
             ax[row_i, col_i].set_xlabel("Frequency [Hz]")
             ax[row_i, col_i].set_xlim(0, 0.5)
-            ax[row_i, col_i].set_ylim(1e-2, 1e4)
+            ax[row_i, col_i].set_ylim(1e-2, 1e6)
             ax[row_i, col_i].set_yscale("log")
         
             # add secondary x axis with period in seconds below the frequency axis
@@ -190,4 +172,4 @@ for col_i in range(3):
     
 plt.tight_layout()
 fn = f"{measuring_situation}_{measuring_device}_FFT.png"
-plt.savefig(f"../images/results/fft/{fn}", dpi=300, bbox_inches="tight")
+plt.savefig(f"../../results/fft/{fn}", dpi=300, bbox_inches="tight")

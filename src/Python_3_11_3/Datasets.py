@@ -32,12 +32,18 @@ class Dataset:
         # Calculate FFT
         fft_output = fft.fft(var)
         freqs = fft.fftfreq(len(var), 1/sample_rate)
-        spectrum = np.abs(fft_output)
         
-        # Remove frequencies above Nyquist frequency
+        # Calculate the square of the norm of each complex number
+        # Norm = sqrt(Re² + Im²)
+        spectrum = np.square(np.abs(fft_output))
+        
+        # Remove first element (mean) and frequencies above Nyquist frequency
         nf = floor(len(self.time_raw)/2)
-        freqs = freqs[:nf]
-        spectrum = spectrum[:nf]
+        freqs = freqs[:nf] # todo: 1:nf
+        spectrum = spectrum[:nf] # todo: 1:nf
+        
+        # Multiply spectrum by 2 to account for negative frequencies
+        spectrum = [i*2 for i in spectrum]
         
         return freqs, spectrum
 
@@ -124,7 +130,7 @@ class ExpeDataset(Dataset):
         sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_time, end_time, inclusive="both")]
 
         if len(sensor0_flt) == 0:
-            sys.exit(f"Temporal filtering of {self.fn} results in 0 data points.")
+            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points.")
 
         self.time_raw = pd.to_datetime(sensor0_flt["Datetime"])
         self.t_raw = sensor0_flt["T"].to_numpy()
@@ -178,16 +184,18 @@ class SonicDataset(Dataset):
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
         """Parse the data from the dat-file."""
-
         df = pd.read_csv(fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "T"], skiprows=4)    
-        
         type_cols = {'windx': float, 'windy': float, 'windz': float, 'T': float}
         df = df.astype(type_cols)
+        df = df.dropna()
         
+        # Convert local time (wihout summer time) to UTC
         df["Datetime"] = pd.to_datetime(df["Datetime"], format="%Y-%m-%d %H:%M:%S")
+        df["Datetime"] = df["Datetime"] - pd.Timedelta(hours=1)
+        
         df_flt = df.loc[df['Datetime'].between(start_time, end_time, inclusive="both")]
         if len(df_flt) == 0:
-            sys.exit(f"Temporal filtering of {self.fn} results in 0 data points.")
+            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points.")
 
         def calc_3d_wind(row)-> float:
             """Calculate the absolute wind speed from the 3 wind components."""

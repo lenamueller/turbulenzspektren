@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from Datasets import ExpeDataset, SonicDataset
-
+from setup import metadata
 
 # ----------------------------------------------------------------------------
 # setup
@@ -14,24 +14,9 @@ print("Processing arguments", sys.argv)
 
 measuring_situation = sys.argv[1]
 measuring_device = sys.argv[2]
-durations_min = [1, 2, 3, 5, 10, 15, 30]
 
-match measuring_situation:
-    case "ES_2023_07_08":
-        expe_fn = "../data/2023_07_08/20230708-1329-Log.txt"
-        sonic_fn = "../data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat"
-        start_date = "2023-07-08 15:00:00"
-        end_date =   "2023-07-08 16:00:00"
-    case "ES_2023_07_11":
-        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
-        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
-        start_date = "2023-07-11 12:36:00"
-        end_date =   "2023-07-11 13:36:00"
-    case "GAS_2023_07_11":
-        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
-        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
-        start_date = "2023-07-11 11:00:00"
-        end_date =   "2023-07-11 12:00:00"
+expe_fn, sonic_fn, start_date, end_date, date = metadata(measuring_situation)
+durations_min = [1, 2, 3, 5, 10, 15, 30]
 
 # ----------------------------------------------------------------------------
 # create Dataset objects
@@ -132,7 +117,7 @@ for avg_option in ["rolling_mean", "fixed_intervalls"]:
 
     # plot setup
     for i in [1, 2]:
-        ax[i].set_ylim([-np.max(np.abs(deviations))-1, np.max(np.abs(deviations))+1])
+        ax[i].set_ylim([-4, 4])
         ax[i].set_ylabel("Temperature deviation [°C]")
 
     for i in [0,1]:
@@ -143,8 +128,9 @@ for avg_option in ["rolling_mean", "fixed_intervalls"]:
         ax[i].grid(which="minor", alpha=0.1)
         ax[i].grid(which="major", alpha=0.8)
         ax[i].legend(columnspacing=0.5, loc="upper right", fontsize="small")
-        ax[i].set_xlabel("Time [CET]")
+        ax[i].set_xlabel("Time [UTC]")
 
+    # ax[0].set_ylim([25, 40])
     ax[0].set_ylabel("Temperature [°C]")
     ax[2].set_xlabel("Window size [min]")
     ax[2].set_xticks(range(len(durations)))
@@ -154,4 +140,4 @@ for avg_option in ["rolling_mean", "fixed_intervalls"]:
     ax[2].grid(axis="y", which="minor", alpha=0.1)
     ax[2].grid(axis="y", which="major", alpha=0.8)
         
-    plt.savefig(f"../images/results/averaging/{fn}", dpi=300, bbox_inches="tight")
+    plt.savefig(f"../../results/averaging/{fn}", dpi=300, bbox_inches="tight")
