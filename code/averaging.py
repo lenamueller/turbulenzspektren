@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
@@ -5,142 +6,152 @@ from matplotlib.dates import DateFormatter
 from Datasets import ExpeDataset, SonicDataset
 
 
-def diff(a: list[float], b: list[float]) -> list[float]:
-    return [a[i] - b[i] for i in range(len(a))]
-
 # ----------------------------------------------------------------------------
 # setup
 # ----------------------------------------------------------------------------
 
-plot_fn = "FFT_ES_ES" # FFT_GAS_ES, FFT_ES_ES
+print("Processing arguments", sys.argv)
 
-# data paths and temporal frame of measurements
-match plot_fn:
+measuring_situation = sys.argv[1]
+measuring_device = sys.argv[2]
+durations_min = [1, 2, 3, 5, 10, 15, 30]
 
-    case "FFT_ES_ES":
-        expe_fns = ["data/2023_07_08/20230708-1329-Log.txt", "data/2023_07_11/20230711-0504-Log.txt"]
-        sonic_fns = ["data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", "data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"]
-        
-        d1_start_date = "2023-07-08 15:00:00" # ES d1
-        d1_end_date =   "2023-07-08 16:00:00" # ES d1
-        d2_start_date = "2023-07-11 12:36:00" # ES d2
-        d2_end_date =   "2023-07-11 13:36:00" # ES d2
-        
-    case "FFT_GAS_ES":
-        expe_fns = ["data/2023_07_11/20230711-0504-Log.txt", "data/2023_07_11/20230711-0504-Log.txt"]
-        sonic_fns = ["data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", "data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"]
-        
-        d1_start_date = "2023-07-11 11:00:00" # GAS d2
-        d1_end_date =   "2023-07-11 12:00:00" # GAS d2
-        d2_start_date = "2023-07-11 12:36:00" # ES d2
-        d2_end_date =   "2023-07-11 13:36:00" # ES d2
+match measuring_situation:
+    case "ES_2023_07_08":
+        expe_fn = "../data/2023_07_08/20230708-1329-Log.txt"
+        sonic_fn = "../data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat"
+        start_date = "2023-07-08 15:00:00"
+        end_date =   "2023-07-08 16:00:00"
+    case "ES_2023_07_11":
+        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
+        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
+        start_date = "2023-07-11 12:36:00"
+        end_date =   "2023-07-11 13:36:00"
+    case "GAS_2023_07_11":
+        expe_fn = "../data/2023_07_11/20230711-0504-Log.txt"
+        sonic_fn = "../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
+        start_date = "2023-07-11 11:00:00"
+        end_date =   "2023-07-11 12:00:00"
 
 # ----------------------------------------------------------------------------
 # create Dataset objects
 # ----------------------------------------------------------------------------
 
-expe_data = [
-    ExpeDataset(fn=expe_fns[0], start_time=d1_start_date, end_time=d1_end_date),
-    ExpeDataset(fn=expe_fns[1], start_time=d2_start_date, end_time=d2_end_date)
-]
-sonic_data = [
-    SonicDataset(fn=sonic_fns[0], start_time=d1_start_date, end_time=d1_end_date),
-    SonicDataset(fn=sonic_fns[1], start_time=d2_start_date, end_time=d2_end_date)
-]
+if measuring_device == "SONIC":
+    ds = SonicDataset(fn=sonic_fn, start_time=start_date, end_time=end_date)
+    durations = [i*60*2 for i in durations_min] # in number of samples (2 Hz)
+elif measuring_device == "EXPE":
+    ds = ExpeDataset(fn=expe_fn, start_time=start_date, end_time=end_date)
+    durations = [i*60 for i in durations_min] # in number of samples (1 Hz)
+else:
+    raise ValueError("measuring_device must be 'SONIC' or 'EXPE'")
 
-ds_expe = expe_data[0]
-ds_sonic = sonic_data[0]
+# ----------------------------------------------------------------------------
+# averaging
+# ----------------------------------------------------------------------------
 
-durations = [1, 2, 3, 5, 10, 15, 30]
-colors = plt.cm.jet(np.linspace(0,1,len(durations)))
-ref_temp = np.mean(ds_expe.t_det)
+n_samples = len(ds.time_raw)
+n_durations = len(durations)
+ref_temp = np.mean(ds.t_det)
 
-# variante 1: rolling mean
-rolling_means = [ds_expe.rolling_mean(ds_expe.t_det, kernel_size=j*60) for j in durations]
-dev_rolling = [diff(ds_expe.t_det, rolling_means[i]) for i in range(len(durations))]
+def diff(a: list[float], b: list[float]) -> list[float]:
+    return [a[i] - b[i] for i in range(len(a))]
 
-# variante 2: fixed intervalls
-fixed_intervalls = [ds_expe.average(ds_expe.t_det, x)[:-1] for x in durations]
-dev_fixed = [diff(ds_expe.t_det, fixed_intervalls[i]) for i in range(len(durations))]
+# option 1: rolling mean
+rolling_means = [ds.rolling_mean(var=ds.t_det, window_size=j) for j in durations]
+assert np.shape(rolling_means) == (n_durations, n_samples)
 
+dev_rolling = [diff(rolling_means[i], ds.t_det) for i in range(len(durations))]
+assert np.shape(dev_rolling) == (n_durations, n_samples)
 
-variante = 2
-match variante:
-    case 1:
-        comparison = rolling_means
-        deviations = dev_rolling
-        fn = "rolling_mean.png"
-    case 2:
-        comparison = fixed_intervalls
-        deviations = dev_fixed
-        fn = "fixed_intervalls.png"
-    
+# option 2: fixed intervalls
+fixed_intervalls = np.zeros((n_durations, n_samples))
+for i in range(n_durations):
+    vals = ds.step_mean(var=ds.t_det, window_size = durations[i])[:-1]
+    if len(vals) < n_samples:
+        # fill with zeros
+        fixed_intervalls[i] = vals + [0]*(n_samples - len(vals))
+    elif len(vals) > n_samples:
+        # cut off
+        fixed_intervalls[i] = vals[:n_samples]
+    else:
+        fixed_intervalls[i] = vals
+assert np.shape(fixed_intervalls) == (n_durations, n_samples)
+
+dev_fixed = [diff(fixed_intervalls[i], ds.t_det) for i in range(len(durations))]
+assert np.shape(dev_fixed) == (n_durations, n_samples)
+
 # ----------------------------------------------------------------------------
 # plotting
 # ----------------------------------------------------------------------------
 
-fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(15,18))
+colors = plt.cm.jet(np.linspace(0,1,len(durations)))
 
-# detrended temperature
-ax[0].plot(ds_expe.time_raw, ds_expe.t_det, lw=1, alpha=0.8, c="darkgrey", label="EXPE (detrended)")
-
-# reference line
-ax[0].axhline(y=ref_temp, c="darkgrey", lw=1.0, alpha=0.8, ls="--", 
-            label=f"EXPE mean (reference)")
-ax[1].axhline(y=0, c="darkgrey", lw=1.0, alpha=0.8, ls="--", 
-            label=f"EXPE mean (reference)")
-ax[2].axhline(y=0, c="darkgrey", lw=1.0, alpha=0.8, ls="--", 
-            label=f"EXPE mean (reference)")
-
-for i in range(len(durations)):
-    # rolling mean
-    ax[0].plot(ds_expe.time_raw, comparison[i], lw=1, alpha=0.8, c=colors[i], 
-            label=f"rolling mean {durations[i]} min")
-    # deviation line
-    ax[1].plot(ds_expe.time_raw, deviations[i], lw=1.0, alpha=1.0, c=colors[i], 
-        label=f"deviation {durations[i]} min [{np.round(np.min(deviations[i]), 2)}, {np.round(np.max(deviations[i]), 2)}]")
-    # deviation box
-    ax[2].boxplot(deviations[i], positions=[i], widths=0.6, patch_artist=True,
-            boxprops=dict(facecolor=colors[i], color=colors[i], alpha=0.3),
-            capprops=dict(color=colors[i], alpha=1),
-            whiskerprops=dict(color=colors[i]), medianprops=dict(color=colors[i]),
-            flierprops=dict(alpha=0.1, color=colors[i], markeredgecolor=colors[i]))
-
-           
-# plot setup
-ax[0].set_ylim([30, 40])
-ax[1].set_ylim([-4, 4])
-ax[2].set_ylim([-4, 4])
-
-ax[0].set_xlim([ds_expe.time_raw.tolist()[0], ds_expe.time_raw.tolist()[-1]])
-ax[1].set_xlim([ds_expe.time_raw.tolist()[0], ds_expe.time_raw.tolist()[-1]])
-
-ax[0].set_ylabel("Temperature [°C]")
-ax[1].set_ylabel("Temperature deviation [°C]")
-ax[2].set_ylabel("Temperature deviation [°C]")
-
-ax[0].set_xlabel("Time [CET]")
-ax[1].set_xlabel("Time [CET]")
-ax[2].set_xlabel("Window size [min]")
-ax[2].set_xticks(range(len(durations)))
-ax[2].set_xticklabels(durations)
-
-for i in [0,1]:
-    ax[i].yaxis.set_major_locator(plt.MultipleLocator(1))
-    ax[i].yaxis.set_minor_locator(plt.MultipleLocator(0.5))
-    ax[i].xaxis.set_major_formatter(DateFormatter("%H:%M"))
-    ax[i].grid(which="minor", alpha=0.1)
-    ax[i].grid(which="major", alpha=0.8)
-    ax[i].legend(columnspacing=0.5, loc="upper right", fontsize="small")
-
-ax[2].yaxis.set_major_locator(plt.MultipleLocator(1))
-ax[2].yaxis.set_minor_locator(plt.MultipleLocator(0.5))
-
-ax[2].grid(axis="y", which="minor", alpha=0.1)
-ax[2].grid(axis="y", which="major", alpha=0.8)
-
-
+for avg_option in ["rolling_mean", "fixed_intervalls"]:
     
-plt.savefig(f"images/{fn}", dpi=300, bbox_inches="tight")
+    match avg_option:
+        case "rolling_mean":
+            comparison = rolling_means
+            deviations = dev_rolling
+            fn = f"{measuring_situation}_{measuring_device}_rolling_mean.png"
+        case "fixed_intervalls":
+            comparison = fixed_intervalls
+            deviations = dev_fixed
+            fn = f"{measuring_situation}_{measuring_device}_fixed_intervalls.png"
+    
+    fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(15,18))
 
+    signal_kw_args =    {"lw":0.3, "alpha":0.8, "ls":'-', "color": "darkgrey"} if measuring_device == "SONIC" else {"lw":1.0, "alpha":0.8, "ls":'-', "color": "darkgrey"}
+    axhline_kw_args =   {"lw":1.0, "alpha": 0.8, "ls":'--', "color":"darkgrey"}
+    avg_kw_args =       {"lw":1.0, "alpha":0.8, "ls":'-'}
+    dev_kw_args =       {"lw":0.3, "alpha":0.8, "ls":'-'} if measuring_device == "SONIC" else {"lw":1.0, "alpha":0.8, "ls":'-'}
+    
+    # detrended temperature
+    ax[0].plot(ds.time_raw, ds.t_det, label="EXPE (detrended)", **signal_kw_args)
 
+    # reference line
+    ax[0].axhline(y=ref_temp, label="EXPE mean (reference)", **axhline_kw_args)
+    ax[1].axhline(y=0, label="EXPE mean (reference)",**axhline_kw_args)
+    ax[2].axhline(y=0, label="EXPE mean (reference)",**axhline_kw_args)
+
+    for i in range(len(durations)):
+        # avg line
+        ax[0].plot(ds.time_raw, comparison[i], 
+                   label=f"rolling mean {durations_min[i]} min", 
+                   color=colors[i], **avg_kw_args)
+        # deviation line
+        ax[1].plot(ds.time_raw, deviations[i], 
+                   label= f"deviation {durations_min[i]} min [{np.round(np.min(deviations[i]), 2)}, {np.round(np.max(deviations[i]), 2)}]",
+                   color=colors[i],**dev_kw_args)
+        # deviation box
+        ax[2].boxplot(deviations[i], positions=[i], widths=0.6, patch_artist=True,
+                boxprops=dict(facecolor=colors[i], color=colors[i], alpha=0.3),
+                capprops=dict(color=colors[i], alpha=1),
+                whiskerprops=dict(color=colors[i]), medianprops=dict(color=colors[i]),
+                flierprops=dict(alpha=0.1, color=colors[i], markeredgecolor=colors[i]))
+
+    # plot setup
+    for i in [1, 2]:
+        ax[i].set_ylim([-np.max(np.abs(deviations))-1, np.max(np.abs(deviations))+1])
+        ax[i].set_ylabel("Temperature deviation [°C]")
+
+    for i in [0,1]:
+        ax[i].set_xlim([ds.time_raw.tolist()[0], ds.time_raw.tolist()[-1]])
+        ax[i].yaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[i].yaxis.set_minor_locator(plt.MultipleLocator(0.5))
+        ax[i].xaxis.set_major_formatter(DateFormatter("%H:%M"))
+        ax[i].grid(which="minor", alpha=0.1)
+        ax[i].grid(which="major", alpha=0.8)
+        ax[i].legend(columnspacing=0.5, loc="upper right", fontsize="small")
+        ax[i].set_xlabel("Time [CET]")
+
+    ax[0].set_ylabel("Temperature [°C]")
+    ax[2].set_xlabel("Window size [min]")
+    ax[2].set_xticks(range(len(durations)))
+    ax[2].set_xticklabels(durations_min)
+    ax[2].yaxis.set_major_locator(plt.MultipleLocator(1))
+    ax[2].yaxis.set_minor_locator(plt.MultipleLocator(0.5))
+    ax[2].grid(axis="y", which="minor", alpha=0.1)
+    ax[2].grid(axis="y", which="major", alpha=0.8)
+        
+    plt.savefig(f"../images/results/averaging/{fn}", dpi=300, bbox_inches="tight")
