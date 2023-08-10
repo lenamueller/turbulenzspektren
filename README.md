@@ -1,10 +1,16 @@
-## data
-measurements of wind, temperature, rel. humidity and pressure (Sonic Anemometer and Expe module) in Dresden, Germany [2023]
-
 ## structure
 - `data/` contains the raw data
 - `results/` contains the results of the analysis
 - `src/` contains the source code
+
+## measuring devices
+1. Sonic Anemometer (time measured in UTC+1, without daylight saving time): 3D wind speed and temperature
+2. Expe module (time measured in UTC): temperature, rel. humidity and pressure
+
+## temporal_coverage.png
+![temporal_coverage.png](results/temporal_coverage.png)
+
+
 
 
 ## processing steps

@@ -10,19 +10,19 @@ from Datasets import ExpeDataset, SonicDataset
 # create Dataset objects
 
 expe_datasets = [
-    ExpeDataset(fn="../../data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
-    ExpeDataset(fn="../../data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
+    ExpeDataset(fn="data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
+    ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
     # TODO: update data for day 3
-    ExpeDataset(fn="../../data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
+    ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
 ]
 sonic_datasets = [
-    SonicDataset(fn="../../data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
-    SonicDataset(fn="../../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
+    SonicDataset(fn="data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
+    SonicDataset(fn="data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
     # TODO: update data for day 3
-    SonicDataset(fn="../../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
+    SonicDataset(fn="data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
 ]
 
-dates = ["08.07.2023", "11.07.2023", "xx.07.2023"]
+dates = ["08.07.2023", "11.07.2023", "xx.07.2023 (placeholder)"]
 
 fig, ax = plt.subplots(nrows=len(dates), ncols=1, figsize=(15,12))
 
@@ -70,4 +70,4 @@ for i in range(len(dates)):
     
 
 plt.tight_layout()
-plt.savefig("../../results/temporal_coverage.png", dpi=300, bbox_inches='tight')
+plt.savefig("results/temporal_coverage.png", dpi=300, bbox_inches='tight')
