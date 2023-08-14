@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 from scipy import fft
 from scipy.signal import detrend
+from scipy.signal.windows import blackman, hamming, flattop, tukey, cosine, boxcar
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class Dataset:
+    """Base class for datasets"""
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         
         self.fn: str = fn
@@ -26,21 +28,26 @@ class Dataset:
         """Detrend the time series."""
         return np.mean(var) + detrend(var, type="linear")
     
-    def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1) -> None:
+    def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1, window_func = boxcar) -> None:
         """Calculate the FFT of the time series."""
         
-        # Calculate FFT
-        fft_output = fft.fft(var)
-        freqs = fft.fftfreq(len(var), 1/sample_rate)
+        n = len(var)
+        
+        # Appply window function (tapering)
+        var = window_func * var
+        
+        # 1D Discrete Fourier Transform
+        fft_output = fft.fft(var)/n
+        
+        # Remove first element (mean) and frequencies above Nyquist frequency.
+        fft_output = fft_output[1:n//2]
+        
+        # Discrete Fourier Transform sample frequencies
+        freqs = fft.fftfreq(n, 1/sample_rate)[1:n//2]
         
         # Calculate the square of the norm of each complex number
         # Norm = sqrt(Re² + Im²)
         spectrum = np.square(np.abs(fft_output))
-        
-        # Remove first element (mean) and frequencies above Nyquist frequency
-        nf = floor(len(self.time_raw)/2)
-        freqs = freqs[:nf] # todo: 1:nf
-        spectrum = spectrum[:nf] # todo: 1:nf
         
         # Multiply spectrum by 2 to account for negative frequencies
         spectrum = [i*2 for i in spectrum]
@@ -71,7 +78,7 @@ class Dataset:
         return l
 
 class ExpeDataset(Dataset):
-    # Dataset for expe data
+    """Dataset class for EXPE data"""
 
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         super().__init__(fn, start_time, end_time)
@@ -103,9 +110,10 @@ class ExpeDataset(Dataset):
         self.rH_det = self.detrend_signal(var=self.rH_raw)
         self.p_det = self.detrend_signal(var=self.p_raw)
         
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=1)
-        self.rH_freqs, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=1)
-        self.p_freqs, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=1)
+        win_fun = hamming(len(self.t_det), sym=False)
+        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=1, window_func=win_fun)
+        self.rH_freqs, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=1, window_func=win_fun)
+        self.p_freqs, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=1, window_func=win_fun)
         
         self.p_spectrum_smooth = self.smooth_spectrum(self.p_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
@@ -113,6 +121,7 @@ class ExpeDataset(Dataset):
         
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
+        """Parse the data from the csv-file using sensor 0."""
     
         df = pd.read_csv(fn, delimiter=";")
 
@@ -139,7 +148,7 @@ class ExpeDataset(Dataset):
    
 
 class SonicDataset(Dataset):
-    # Dataset for sonic anemometer data
+    """Dataset class for SONIC anemometer data"""
 
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         super().__init__(fn, start_time, end_time)
@@ -174,16 +183,17 @@ class SonicDataset(Dataset):
         self.wind2d_det = self.detrend_signal(var=self.wind2d)
         self.t_det = self.detrend_signal(var=self.t_raw)
         
-        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
-        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=1)
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
+        win_func = hamming(len(self.wind3d_det), sym=False)
+        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1, window_func=win_func)
+        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=1, window_func=win_func)
+        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1, window_func=win_func)
         
         self.wind2d_spectrum_smooth = self.smooth_spectrum(self.wind2d_spectrum)
         self.wind3d_spectrum_smooth = self.smooth_spectrum(self.wind3d_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
-        """Parse the data from the dat-file."""
+        """Parse the data from the dat-file and calculate 2D and 3D wind speed."""
         df = pd.read_csv(fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "T"], skiprows=4)    
         type_cols = {'windx': float, 'windy': float, 'windz': float, 'T': float}
         df = df.astype(type_cols)

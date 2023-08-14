@@ -1,7 +1,9 @@
 from Datasets import ExpeDataset, SonicDataset
 
 
-def create_datasets():
+def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
+    """Return datasets for all experiments."""
+    
     expe_datasets = [
         ExpeDataset(fn="data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
         ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
@@ -21,7 +23,7 @@ def create_datasets():
     return expe_datasets, sonic_datasets
 
 def metadata(puo: str) -> tuple:
-    """Return metadata for a given measuring situation."""
+    """Return metadata for a given PUO (=period under observation)."""
 
     match puo:
         
@@ -53,7 +55,7 @@ def metadata(puo: str) -> tuple:
             end_date =   "2023-07-11 07:00:00"
             date = "11.07.2023"
             day=2
-        case "PUO_03":
+        case "PUO_03": # GAS
             expe_fn = "../../data/2023_07_11/20230711-0504-Log.txt"
             sonic_fn = "../../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat"
             start_date = "2023-07-11 10:00:00"

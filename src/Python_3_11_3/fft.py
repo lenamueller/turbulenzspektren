@@ -14,14 +14,14 @@ np.seterr(divide='ignore')
 
 print("Processing arguments", sys.argv)
 
-measuring_situation = sys.argv[1]
+puo = sys.argv[1]
 measuring_device = sys.argv[2]
 
-expe_fn, sonic_fn, start_date, end_date, date = metadata(measuring_situation)
+expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(puo)
 
 durations_min = [1, 2, 3, 5, 10, 15, 30]
 kernel_size = 12 
-freqs = {"SONIC": "$\Delta t$ = 0.5 s", "EXPE": "$\Delta t$ = 1.0 s"}
+freqs = {"SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s", "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"}
 
 # ----------------------------------------------------------------------------
 # create Dataset objects
@@ -42,7 +42,7 @@ lw = 1.0 if measuring_device == "EXPE" else 0.5
 raw_kw_args =           {"lw": lw, "alpha": 0.4, "c": "darkgrey"}
 det_kw_args =           {"lw": lw, "alpha": 0.8, "c": "b"}
 spec_kw_args =          {"lw": 0.5, "alpha": 0.5, "c": "darkgrey"}
-smooth_spec_kw_args =   {"lw": 1.0, "alpha": 1.0, "c": "r"}
+smooth_spec_kw_args =   {"lw": 1.0, "alpha": 0.5, "c": "r"}
 scat_kw_args =          {"s": 1.0, "alpha": 0.3, "c": "darkgrey"}
 range_kw_args =         {"alpha": 0.1, "color": "orange"}
     
@@ -92,8 +92,8 @@ if measuring_device == "SONIC":
     ax[0,0].set_ylabel("Temperature [°C]")
     ax[0,1].set_ylabel("3D wind speed [m/s]")
     ax[0,2].set_ylabel("2D wind speed [m/s]")
-    ax[0,1].set_ylim((0, 3))
-    ax[0,2].set_ylim((0, 3))
+    ax[0,1].set_ylim((0, 5))
+    ax[0,2].set_ylim((0, 5))
 
 elif measuring_device == "EXPE":
     
@@ -139,8 +139,6 @@ for col_i in range(3):
         title = f"Date: {date}\n\n{measuring_device} data ({freqs[measuring_device]})\n"
         fig.suptitle(title, fontweight='bold', fontsize=14)
         
-        # ax[0,0].set_title(f"Date: {date}\n\n{measuring_device} data ({freqs[measuring_device]})", fontweight='bold')
-        
         if row_i == 0: # time series plots
             ax[row_i, col_i].set_xlabel("Time [UTC]")
             ax[row_i, col_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
@@ -150,15 +148,17 @@ for col_i in range(3):
             ax[row_i, col_i].axvspan(1/60, 1/600, label="1 min - 10 min", **range_kw_args)
             ax[row_i, col_i].set_ylabel("Magnitude Spectrum")
             ax[row_i, col_i].set_xlabel("Frequency [Hz]")
-            ax[row_i, col_i].set_xlim(0, 0.5)
-            ax[row_i, col_i].set_ylim(1e-2, 1e6)
+            
+            ax[row_i, col_i].set_xlim(0, 0.1)
+            # ax[row_i, col_i].set_xlim(0, 0.5) # full spectrum
+            
             ax[row_i, col_i].set_yscale("log")
-        
+            # ax[row_i, col_i].set_xscale("log")
+            
             # add secondary x axis with period in seconds below the frequency axis
             ax2 = ax[row_i, col_i].twiny()
             x_t = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
             x_t = [i*2 for i in x_t]
-            # ! fix this: ax2.set_xticks(ax[row_i,col_i].get_xticks())
             ax2.set_xticks(x_t)
             ax2.set_xticklabels(np.round(1/ax[row_i, col_i].get_xticks(), 2))
             ax2.xaxis.set_ticks_position("bottom")
@@ -171,5 +171,5 @@ for col_i in range(3):
         ax[row_i, col_i].legend(loc="upper right")
     
 plt.tight_layout()
-fn = f"{measuring_situation}_{measuring_device}_FFT.png"
+fn = f"{puo}_{measuring_device}_FFT.png"
 plt.savefig(f"../../results/fft/{fn}", dpi=300, bbox_inches="tight")
