@@ -57,8 +57,8 @@ if measuring_device == "SONIC":
                label="raw", **raw_kw_args)
     ax[0,0].plot(ds.time_raw, ds.t_det, 
                label="detrended", **det_kw_args)
-    ax[1,0].plot(ds.t_freqs, ds.t_spectrum, 
-               label="raw", **spec_kw_args)
+    # ax[1,0].plot(ds.t_freqs, ds.t_spectrum, 
+    #            label="raw", **spec_kw_args)
     ax[1,0].scatter(ds.t_freqs, ds.t_spectrum, **scat_kw_args)
     ax[1,0].plot(ds.t_freqs[cutoff:len(ds.t_freqs)-cutoff+1], 
                ds.t_spectrum_smooth, **smooth_spec_kw_args, 
@@ -146,26 +146,19 @@ for col_i in range(3):
         
         else: # spectrum plots
             ax[row_i, col_i].axvspan(1/60, 1/600, label="1 min - 10 min", **range_kw_args)
-            ax[row_i, col_i].set_ylabel("Magnitude Spectrum")
+            ax[row_i, col_i].set_ylabel("Spectral Energy Density * Frequency")
             ax[row_i, col_i].set_xlabel("Frequency [Hz]")
+            ax[row_i, col_i].set_ylim((0, 200))
+            ax[row_i, col_i].set_xscale("log")
+            ax[row_i, col_i].set_xlim((1e-4, 1e-1))
+            ax[row_i, col_i].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
             
-            ax[row_i, col_i].set_xlim(0, 0.1)
-            # ax[row_i, col_i].set_xlim(0, 0.5) # full spectrum
-            
-            ax[row_i, col_i].set_yscale("log")
-            # ax[row_i, col_i].set_xscale("log")
-            
-            # add secondary x axis with period in seconds below the frequency axis
-            ax2 = ax[row_i, col_i].twiny()
-            x_t = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-            x_t = [i*2 for i in x_t]
-            ax2.set_xticks(x_t)
-            ax2.set_xticklabels(np.round(1/ax[row_i, col_i].get_xticks(), 2))
-            ax2.xaxis.set_ticks_position("bottom")
-            ax2.xaxis.set_label_position("bottom")
-            ax2.spines["bottom"].set_position(("axes", -0.25))
+            # secondary x axis with period in seconds
+            ax2 = ax[row_i, col_i].secondary_xaxis(-0.2, functions=(lambda x: 1/x, lambda x: 1/x))
+            ax2.set_xticks([10000, 1000, 100, 10])
+            ax2.set_yticklabels(["10000", "1000", "100", "10"], format="%d")
             ax2.set_xlabel("Period [s]")
-        
+            
         # all plots
         ax[row_i, col_i].grid(True)
         ax[row_i, col_i].legend(loc="upper right")
