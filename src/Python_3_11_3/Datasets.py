@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import sys
 from math import floor
 import numpy as np
@@ -33,11 +34,11 @@ class Dataset:
         
         n = len(var)
         
-        # Appply window function (tapering)
-        var = cosine(M=len(var)) * var
+        # Apply window function (tapering)
+        var = blackman(M=len(var)) * var
         
         # 1D Discrete Fourier Transform
-        fft_output = fft.fft(var)/n
+        fft_output = fft.fft(var)
         
         # Remove first element (mean) and frequencies above Nyquist frequency.
         fft_output = fft_output[1:n//2]
@@ -48,7 +49,16 @@ class Dataset:
         # Calculate the square of the norm of each complex number
         # Norm = sqrt(Re² + Im²)
         spectrum = np.square(np.abs(fft_output))
+
+        # Multiply spectral energy density by frequency
+        spectrum *= freqs
         
+        # plt.figure()
+        # plt.plot(spectrum_before, label="before")
+        # plt.plot(spectrum, label="after")
+        # plt.legend()
+        # plt.show()
+                
         # Multiply spectrum by 2 to account for negative frequencies
         spectrum = [i*2 for i in spectrum]
         
@@ -182,9 +192,9 @@ class SonicDataset(Dataset):
         self.wind2d_det = self.detrend_signal(var=self.wind2d)
         self.t_det = self.detrend_signal(var=self.t_raw)
         
-        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
-        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=1)
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
+        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=0.5)
+        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=0.5)
+        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=0.5)
         
         self.wind2d_spectrum_smooth = self.smooth_spectrum(self.wind2d_spectrum)
         self.wind3d_spectrum_smooth = self.smooth_spectrum(self.wind3d_spectrum)
