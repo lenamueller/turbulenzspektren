@@ -20,7 +20,7 @@ measuring_device = sys.argv[2]
 expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(puo)
 
 durations_min = [1, 2, 3, 5, 10, 15, 30]
-kernel_size = 12 
+kernel_size = 12
 freqs = {"SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s", "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"}
 
 # ----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ elif measuring_device == "EXPE":
     
     ax[1,1].plot(ds.rH_freqs[cutoff:len(ds.rH_freqs)-cutoff+1], ds.rH_spectrum_smooth, 
                label="smoothed", **smooth_spec_kw_args)
-    
+
     # pressure
     ax[0,2].plot(ds.time_raw, ds.p_raw, label="raw", **raw_kw_args)
     ax[0,2].plot(ds.time_raw, ds.p_det, label="detrended", **det_kw_args)

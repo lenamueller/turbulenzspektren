@@ -28,13 +28,13 @@ class Dataset:
         """Detrend the time series."""
         return np.mean(var) + detrend(var, type="linear")
     
-    def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1, window_func = boxcar) -> None:
+    def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1) -> None:
         """Calculate the FFT of the time series."""
         
         n = len(var)
         
         # Appply window function (tapering)
-        var = window_func * var
+        var = cosine(M=len(var)) * var
         
         # 1D Discrete Fourier Transform
         fft_output = fft.fft(var)/n
@@ -54,7 +54,7 @@ class Dataset:
         
         return freqs, spectrum
 
-    def smooth_spectrum(self, var: np.ndarray, kernel_size: int = 12) -> None:
+    def smooth_spectrum(self, var: np.ndarray, kernel_size: int = 12) -> np.ndarray:
         """Smooth the time series with a moving average"""
         kernel = np.ones(kernel_size) / kernel_size
         return np.convolve(var, kernel, mode='valid')
@@ -110,10 +110,9 @@ class ExpeDataset(Dataset):
         self.rH_det = self.detrend_signal(var=self.rH_raw)
         self.p_det = self.detrend_signal(var=self.p_raw)
         
-        win_fun = hamming(len(self.t_det), sym=False)
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=1, window_func=win_fun)
-        self.rH_freqs, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=1, window_func=win_fun)
-        self.p_freqs, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=1, window_func=win_fun)
+        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=1)
+        self.rH_freqs, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=1)
+        self.p_freqs, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=1)
         
         self.p_spectrum_smooth = self.smooth_spectrum(self.p_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
@@ -183,10 +182,9 @@ class SonicDataset(Dataset):
         self.wind2d_det = self.detrend_signal(var=self.wind2d)
         self.t_det = self.detrend_signal(var=self.t_raw)
         
-        win_func = hamming(len(self.wind3d_det), sym=False)
-        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1, window_func=win_func)
-        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=1, window_func=win_func)
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1, window_func=win_func)
+        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
+        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=1)
+        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=1)
         
         self.wind2d_spectrum_smooth = self.smooth_spectrum(self.wind2d_spectrum)
         self.wind3d_spectrum_smooth = self.smooth_spectrum(self.wind3d_spectrum)
