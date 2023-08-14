@@ -9,16 +9,14 @@ def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
         ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
         ExpeDataset(fn="data/2023_08_11/20230811-0810-Log.txt", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
         ExpeDataset(fn="data/2023_08_12/20230812-0641-Log.txt", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
-        # todo
-        ExpeDataset(fn="data/2023_08_12/20230812-0641-Log.txt", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
+        ExpeDataset(fn="data/2023_08_14/20230814-0656-Log.txt", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
     ]
     sonic_datasets = [
         SonicDataset(fn="data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
         SonicDataset(fn="data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
         SonicDataset(fn="data/2023_08_11/TOA5_7134.Raw_2023_08_11_0924.dat", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
         SonicDataset(fn="data/2023_08_12/TOA5_7134.Raw_2023_08_12_0755.dat", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
-        # todo
-        SonicDataset(fn="data/2023_08_12/TOA5_7134.Raw_2023_08_12_0755.dat", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
+        SonicDataset(fn="data/2023_08_14/TOA5_7134.Raw_2023_08_14_0749.dat", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
     ]
     return expe_datasets, sonic_datasets
 
@@ -90,12 +88,11 @@ def metadata(puo: str) -> tuple:
             end_date = "2023-08-12 14:20:00"
             date = "12.08.2023"
             day=4
-        # TODO
         case "PUO_08":
-            expe_fn = "../../data/2023_08_12/20230812-0641-Log.txt"
-            sonic_fn = "../../data/2023_08_12/TOA5_7134.Raw_2023_08_12_0755.dat"
+            expe_fn = "../../data/2023_08_14/20230814-0656-Log.txt"
+            sonic_fn = "../../data/2023_08_14/TOA5_7134.Raw_2023_08_14_0749.dat"
             start_date = "2023-08-14 07:00:00"
-            end_date =   "2023-08-14 07:00:00"
+            end_date =   "2023-08-14 16:55:00"
             date = "14.08.2023"
             day=5
         
