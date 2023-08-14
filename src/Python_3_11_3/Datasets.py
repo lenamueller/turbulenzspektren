@@ -35,7 +35,7 @@ class Dataset:
         n = len(var)
         
         # Apply window function (tapering)
-        var = blackman(M=len(var)) * var
+        var = tukey(M=len(var)) * var
         
         # 1D Discrete Fourier Transform
         fft_output = fft.fft(var)
@@ -53,18 +53,12 @@ class Dataset:
         # Multiply spectral energy density by frequency
         spectrum *= freqs
         
-        # plt.figure()
-        # plt.plot(spectrum_before, label="before")
-        # plt.plot(spectrum, label="after")
-        # plt.legend()
-        # plt.show()
-                
         # Multiply spectrum by 2 to account for negative frequencies
         spectrum = [i*2 for i in spectrum]
         
         return freqs, spectrum
 
-    def smooth_spectrum(self, var: np.ndarray, kernel_size: int = 12) -> np.ndarray:
+    def smooth_spectrum(self, var: np.ndarray, kernel_size: int = 10) -> np.ndarray:
         """Smooth the time series with a moving average"""
         kernel = np.ones(kernel_size) / kernel_size
         return np.convolve(var, kernel, mode='valid')
