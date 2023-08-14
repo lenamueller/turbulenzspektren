@@ -15,7 +15,7 @@ print("Processing arguments", sys.argv)
 measuring_situation = sys.argv[1]
 measuring_device = sys.argv[2]
 
-expe_fn, sonic_fn, start_date, end_date, date = metadata(measuring_situation)
+expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(measuring_situation)
 durations_min = [1, 2, 3, 5, 10, 15, 30]
 
 # ----------------------------------------------------------------------------
@@ -116,6 +116,9 @@ for avg_option in ["rolling_mean", "fixed_intervalls"]:
                 flierprops=dict(alpha=0.1, color=colors[i], markeredgecolor=colors[i]))
 
     # plot setup
+    if avg_option == "fixed_intervalls" and np.min(fixed_intervalls) == 0.0:
+        ax[0].set_ylim([28, np.max(fixed_intervalls)])
+    
     for i in [1, 2]:
         ax[i].set_ylim([-4, 4])
         ax[i].set_ylabel("Temperature deviation [°C]")
