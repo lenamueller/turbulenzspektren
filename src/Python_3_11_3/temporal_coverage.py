@@ -78,4 +78,4 @@ for i in range(len(dates)):
     ax[i].legend(lns, labs, loc="upper left")
     
 plt.tight_layout()
-plt.savefig("results/temporal_coverage.png", dpi=300, bbox_inches='tight')
+plt.savefig("results/temporal_coverage.png", dpi=600, bbox_inches='tight')
