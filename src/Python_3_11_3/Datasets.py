@@ -81,6 +81,11 @@ class Dataset:
                 l.append(np.mean(var[i-window_size:i]))
         return l
 
+    def norm_smooth_spectrum(self, var: np.ndarray):
+        n = len(var)
+        normed = [i/n for i in var]
+        return normed
+
 class ExpeDataset(Dataset):
     """Dataset class for EXPE data"""
 
