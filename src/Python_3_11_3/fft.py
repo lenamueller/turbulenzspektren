@@ -1,10 +1,12 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.image import NonUniformImage
 from matplotlib.dates import DateFormatter
+import matplotlib.colors as colors
 
 from Datasets import ExpeDataset, SonicDataset
-from setup import metadata
+from setup import metadata, kernel_size
 
 np.seterr(divide='ignore')
 
@@ -20,7 +22,7 @@ measuring_device = sys.argv[2]
 expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(puo)
 
 durations_min = [1, 2, 3, 5, 10, 15, 30]
-kernel_size = 10
+
 freqs = {"SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s", "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"}
 
 # ----------------------------------------------------------------------------
@@ -46,6 +48,18 @@ smooth_spec_kw_args =   {"lw": 1.0, "alpha": 0.5, "c": "r"}
 scat_kw_args =          {"s": 1.0, "alpha": 0.6, "c": "darkgrey"}
 range_kw_args =         {"alpha": 0.1, "color": "orange"}
     
+def two_dim_binning(x: np.ndarray, y: np.ndarray, bins: list[tuple[float]]) -> list[list[float]]:
+    assert len(x) == len(y)
+    
+    binned_data: list[list[float]] = [[] for i in range(len(bins))]
+    for i in range(len(x)):
+        x_i = x[i]
+        y_i = y[i]
+        for j in range(len(bins)):
+            (lower, upper) = bins[j]
+            if lower <= x_i < upper:
+                binned_data[j].append(y_i)
+    return binned_data
 
 fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(20,10))
 cutoff = int(kernel_size/2)
@@ -57,6 +71,7 @@ if measuring_device == "SONIC":
                label="raw", **raw_kw_args)
     ax[0,0].plot(ds.time_raw, ds.t_det, 
                label="detrended", **det_kw_args)
+    
     ax[1,0].plot(ds.t_freqs, ds.t_spectrum, 
                label="raw", **spec_kw_args)
     ax[1,0].scatter(ds.t_freqs, ds.t_spectrum, **scat_kw_args)
@@ -143,19 +158,16 @@ for col_i in range(3):
             ax[row_i, col_i].set_xlim(ds.time_raw.tolist()[0], ds.time_raw.tolist()[-1])
         
         else: # spectrum plots
-            ax[row_i, col_i].axvspan(1/(60*1), 1/(60*30), label="1 min - 30 min", **range_kw_args)
+            ax[row_i, col_i].axvspan(1/(60*1), 1/(60*15), label="1 min - 15 min", **range_kw_args)
             ax[row_i, col_i].set_ylabel("Spectral Energy Density * Frequency")
             ax[row_i, col_i].set_xlabel("Frequency [Hz]")
             max_smooth_val = np.max(ds.t_spectrum_smooth)
-            max_smooth_val *= 1.1
-            
-            # TODO: set ylim
+            max_smooth_val *= 1.25
             if measuring_device == "SONIC":
                 ax[row_i, col_i].set_ylim((0, max_smooth_val))
-            elif measuring_device == "EXPE":
-                ax[row_i, col_i].set_ylim((0, 30000))
             else:
-                raise ValueError("measuring_device must be 'SONIC' or 'EXPE'")
+                pass
+            
             ax[row_i, col_i].set_xscale("log")
             ax[row_i, col_i].set_xlim((1e-4, 1e-1))
             ax[row_i, col_i].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])

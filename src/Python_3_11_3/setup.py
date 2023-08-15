@@ -1,6 +1,8 @@
 from Datasets import ExpeDataset, SonicDataset
 
 
+kernel_size = 10
+
 def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
     """Return datasets for all experiments."""
     
