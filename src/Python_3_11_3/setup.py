@@ -4,7 +4,7 @@ from Datasets import ExpeDataset, SonicDataset
 kernel_size = 10
 
 def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
-    """Return datasets for all experiments."""
+    """Return datasets for all experiments (withoud temporal preselection)."""
     
     expe_datasets = [
         ExpeDataset(fn="data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
@@ -23,7 +23,7 @@ def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
     return expe_datasets, sonic_datasets
 
 def metadata(puo: str) -> tuple:
-    """Return metadata for a given PUO (=period under observation)."""
+    """Return metadata for a given PUO (period under observation)."""
 
     match puo:
         

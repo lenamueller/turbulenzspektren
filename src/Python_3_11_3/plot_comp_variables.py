@@ -6,8 +6,8 @@ from Datasets import ExpeDataset, SonicDataset
 
 
 puo = 3
-expe_ds = ExpeDataset(fn="../../data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
-sonic_ds = SonicDataset(fn="../../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
+expe_ds = ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
+sonic_ds = SonicDataset(fn="data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00")
 
 # expe_fn, sonic_fn, start_date, end_date, date, day = metadata(puo)
 
@@ -59,15 +59,15 @@ for (row_i, col_i) in [(0,0), (0,1), (1,0), (1,1)]:
     ax[row_i, col_i].set_ylim(*y_limits[row_i*2+col_i])
 
 
-bin_number = 100
-x_bins = np.logspace(-4, -1, bin_number, endpoint=True)
-y_bins = np.linspace(0, 0.005, bin_number, endpoint=True) 
-H, yedges, xedges = np.histogram2d(sonic_diff, sonic_freqs, bins=(x_bins, y_bins))
-print(xedges, yedges)
+# bin_number = 100
+# x_bins = np.logspace(-4, -1, bin_number, endpoint=True)
+# y_bins = np.linspace(0, 0.005, bin_number, endpoint=True) 
+# H, yedges, xedges = np.histogram2d(sonic_diff, sonic_freqs, bins=(x_bins, y_bins))
+# print(xedges, yedges)
 # todo
 # im = ax[1,0].pcolormesh(xedges, yedges, H, cmap='rainbow')
 # plt.colorbar(im, ax=ax[1,0])
 
 
 fn = f"{puo}_comparison_variables.png"
-plt.savefig(f"../../results/comparison/{fn}", dpi=300, bbox_inches="tight")
+plt.savefig(f"results/comparison/{fn}", dpi=300, bbox_inches="tight")

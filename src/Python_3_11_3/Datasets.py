@@ -1,11 +1,26 @@
-import matplotlib.pyplot as plt
+"""
+File: Datasets.py
+Author: Lena Müller
+Date: November 14, 2023
+
+Description:
+This module defines the Dataset class and its subclasses, which provide methods 
+for parsing and processing time series data. The Dataset class is a base class 
+that defines common methods for all datasets, while the ExpeDataset class and
+the SonicDataset class are subclasses with parsing functions and individual 
+attributes.
+
+Classes:
+- Dataset: Base class for datasets.
+- ExpeDataset: Dataset class for EXPE data.
+- SonicDataset: Dataset class for SONIC anemometer data.
+
+"""
+
 import sys
-from math import floor
 import numpy as np
 import pandas as pd
-from scipy import fft
-from scipy.signal import detrend
-from scipy.signal.windows import blackman, hamming, flattop, tukey, cosine, boxcar
+import scipy
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -27,24 +42,25 @@ class Dataset:
 
     def detrend_signal(self, var: np.ndarray) -> None:
         """Detrend the time series."""
-        return np.mean(var) + detrend(var, type="linear")
+        return np.mean(var) + scipy.signal.detrend(var, type="linear")
     
     def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1) -> None:
         """Calculate the FFT of the time series."""
         
         n = len(var)
         
-        # Apply window function (tapering)
-        var = tukey(M=len(var)) * var
+        # Apply window function (tapering), selection of window functions: 
+        # blackman, hamming, flattop, tukey, cosine, boxcar
+        var = scipy.signal.windows.tukey(M=len(var)) * var
         
         # 1D Discrete Fourier Transform
-        fft_output = fft.fft(var)
+        fft_output = scipy.fft.fft(var)
         
         # Remove first element (mean) and frequencies above Nyquist frequency.
         fft_output = fft_output[1:n//2]
         
         # Discrete Fourier Transform sample frequencies
-        freqs = fft.fftfreq(n, 1/sample_rate)[1:n//2]
+        freqs = scipy.fft.fftfreq(n, 1/sample_rate)[1:n//2]
         
         # Calculate the square of the norm of each complex number
         # Norm = sqrt(Re² + Im²)
@@ -82,6 +98,7 @@ class Dataset:
         return l
 
     def norm_smooth_spectrum(self, var: np.ndarray):
+        # TODO
         n = len(var)
         normed = [i/n for i in var]
         return normed

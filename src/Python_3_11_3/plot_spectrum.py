@@ -1,9 +1,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.image import NonUniformImage
 from matplotlib.dates import DateFormatter
-import matplotlib.colors as colors
 
 from Datasets import ExpeDataset, SonicDataset
 from setup import metadata, kernel_size
