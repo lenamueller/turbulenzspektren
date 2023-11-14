@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import pandas as pd
 
-from setup import metadata, create_datasets
+from setup import metadata, create_datasets, all_puos
 
 
 # ----------------------------------------------------------------------------
@@ -26,22 +26,17 @@ print("\tPlotting temporal coverage")
 expe_datasets, sonic_datasets = create_datasets()
 
 # periods under observation
-puos = [
-    "PUO_00_0", "PUO_00_1", # no expe data
-    "PUO_01", "PUO_02", "PUO_03", "PUO_04", 
-    "PUO_05", "PUO_06", "PUO_07", "PUO_08"
-    ]    
 
 # get unique dates from metadata
 dates = []
-for puo in puos:
+for puo in all_puos:
     _, _, _, _, date, day = metadata(puo)
     if date not in dates:
         dates.append(date)
 
 # get PUO ranges
 ranges = []
-for puo in puos[2:]: # skip first two puos without expe data
+for puo in all_puos[2:]: # skip first two puos without expe data
     _, _, start_date, end_date, _, day = metadata(puo)
     start = pd.to_datetime(start_date, format="%Y-%m-%d %H:%M:%S")
     end = pd.to_datetime(end_date, format="%Y-%m-%d %H:%M:%S")
@@ -76,7 +71,7 @@ for i in range(len(dates)):
         if ax_i == i:
             hours = round((end-start).total_seconds()/(60*60), 1)
             ln_polygon = ax[i].axvspan(ranges[j][1], ranges[j][2], alpha=0.1, 
-                                        color='orange', label=f"PUO {j+1}: {hours} h")
+                                        color='gold', label=f"PUO {j+1}: {hours} h")
             lns += [ln_polygon]
     
     # plot setup
