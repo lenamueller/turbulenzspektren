@@ -1,7 +1,17 @@
+"""
+File: plot_comp_variables.py
+Author: Lena Müller
+Date: November 14, 2023
+
+Description:
+This script plots the comparison of the variables temperature, relative humidity
+and pressure for the EXPE and the sonic anemometer.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-from setup import metadata, create_datasets, kernel_size
+from setup import kernel_size
 from Datasets import ExpeDataset, SonicDataset
 
 

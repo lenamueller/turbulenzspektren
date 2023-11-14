@@ -15,10 +15,17 @@ import pandas as pd
 
 from setup import metadata, create_datasets
 
+
+# ----------------------------------------------------------------------------
+# setup
+# ----------------------------------------------------------------------------
+
+print("\tPlotting temporal coverage")
+
 # create Dataset objects
 expe_datasets, sonic_datasets = create_datasets()
 
-# labels for periods under observation
+# periods under observation
 puos = [
     "PUO_00_0", "PUO_00_1", # no expe data
     "PUO_01", "PUO_02", "PUO_03", "PUO_04", 
@@ -40,7 +47,10 @@ for puo in puos[2:]: # skip first two puos without expe data
     end = pd.to_datetime(end_date, format="%Y-%m-%d %H:%M:%S")
     ranges.append((day-1, start, end))
 
-# plot
+# ----------------------------------------------------------------------------
+# plotting
+# ----------------------------------------------------------------------------
+
 _, ax = plt.subplots(nrows=len(dates), ncols=1, figsize=(15,20))
 
 # iterate over subplots
@@ -95,4 +105,4 @@ for i in range(len(dates)):
     ax[i].legend(lns, labs, loc="upper left")
     
 plt.tight_layout()
-plt.savefig("results/temporal_coverage.png", dpi=600, bbox_inches='tight')
+plt.savefig("../../results/temporal_coverage.png", dpi=600, bbox_inches='tight')

@@ -14,7 +14,6 @@ Classes:
 - Dataset: Base class for datasets.
 - ExpeDataset: Dataset class for EXPE data.
 - SonicDataset: Dataset class for SONIC anemometer data.
-
 """
 
 import sys
@@ -147,7 +146,7 @@ class ExpeDataset(Dataset):
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
         """Parse the data from the csv-file using sensor 0."""
-    
+        
         df = pd.read_csv(fn, delimiter=";")
 
         sensor0 = df.loc[df['Module Command'] == 0]
@@ -164,7 +163,7 @@ class ExpeDataset(Dataset):
         sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_time, end_time, inclusive="both")]
 
         if len(sensor0_flt) == 0:
-            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points.")
+            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points. No EXPE data for this time period.")
 
         self.time_raw = pd.to_datetime(sensor0_flt["Datetime"])
         self.t_raw = sensor0_flt["T"].to_numpy()
@@ -218,6 +217,7 @@ class SonicDataset(Dataset):
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
         """Parse the data from the dat-file and calculate 2D and 3D wind speed."""
+        
         df = pd.read_csv(fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "T"], skiprows=4)    
         type_cols = {'windx': float, 'windy': float, 'windz': float, 'T': float}
         df = df.astype(type_cols)
@@ -229,7 +229,7 @@ class SonicDataset(Dataset):
         
         df_flt = df.loc[df['Datetime'].between(start_time, end_time, inclusive="both")]
         if len(df_flt) == 0:
-            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points.")
+            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points. No SONIC data for this time period.")
 
         def calc_3d_wind(row)-> float:
             """Calculate the absolute wind speed from the 3 wind components."""

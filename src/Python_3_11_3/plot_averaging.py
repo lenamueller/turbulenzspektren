@@ -1,3 +1,14 @@
+"""
+File: plot_averaging.py
+Author: Lena Müller
+Date: November 14, 2023
+
+Description:
+This script plots the detrended temperature and the deviation from the mean
+temperature for different averaging window sizes. The averaging can be done
+either by a rolling mean or by fixed intervalls.
+"""
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,10 +22,10 @@ from setup import metadata
 # setup
 # ----------------------------------------------------------------------------
 
-print("Processing arguments", sys.argv)
-
 measuring_situation = sys.argv[1]
 measuring_device = sys.argv[2]
+
+print("\tPlotting averaging for", measuring_situation, measuring_device)
 
 expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(measuring_situation)
 durations_min = [1, 2, 3, 5, 10, 15, 30]

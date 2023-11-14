@@ -1,3 +1,13 @@
+"""
+File: plot_averaging.py
+Author: Lena Müller
+Date: November 14, 2023
+
+Description:
+This script plots the turbulence spectra for the sonic anemometer and the
+EXPE data.
+"""
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,14 +18,15 @@ from setup import metadata, kernel_size
 
 np.seterr(divide='ignore')
 
+
 # ----------------------------------------------------------------------------
 # setup
 # ----------------------------------------------------------------------------
 
-print("Processing arguments", sys.argv)
-
 puo = sys.argv[1]
 measuring_device = sys.argv[2]
+
+print("\tPlotting turbulence spectra for", puo, measuring_device)
 
 expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(puo)
 
@@ -35,7 +46,7 @@ else:
     raise ValueError("measuring_device must be 'SONIC' or 'EXPE'")
 
 # ----------------------------------------------------------------------------
-# plot
+# plotting
 # ----------------------------------------------------------------------------
 
 lw = 1.0 if measuring_device == "EXPE" else 0.5

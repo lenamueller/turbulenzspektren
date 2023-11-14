@@ -1,3 +1,12 @@
+"""
+File: setup.py
+Author: Lena Müller
+Date: November 14, 2023
+
+Description:
+This script contains the metadata and the datasets for all experiments.
+"""
+
 from Datasets import ExpeDataset, SonicDataset
 
 
@@ -7,18 +16,18 @@ def create_datasets() -> tuple[list[ExpeDataset], list[SonicDataset]]:
     """Return datasets for all experiments (withoud temporal preselection)."""
     
     expe_datasets = [
-        ExpeDataset(fn="data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
-        ExpeDataset(fn="data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
-        ExpeDataset(fn="data/2023_08_11/20230811-0810-Log.txt", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
-        ExpeDataset(fn="data/2023_08_12/20230812-0641-Log.txt", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
-        ExpeDataset(fn="data/2023_08_14/20230814-0656-Log.txt", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
+        ExpeDataset(fn="../../data/2023_07_08/20230708-1329-Log.txt", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
+        ExpeDataset(fn="../../data/2023_07_11/20230711-0504-Log.txt", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
+        ExpeDataset(fn="../../data/2023_08_11/20230811-0810-Log.txt", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
+        ExpeDataset(fn="../../data/2023_08_12/20230812-0641-Log.txt", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
+        ExpeDataset(fn="../../data/2023_08_14/20230814-0656-Log.txt", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
     ]
     sonic_datasets = [
-        SonicDataset(fn="data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
-        SonicDataset(fn="data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
-        SonicDataset(fn="data/2023_08_11/TOA5_7134.Raw_2023_08_11_0924.dat", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
-        SonicDataset(fn="data/2023_08_12/TOA5_7134.Raw_2023_08_12_0755.dat", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
-        SonicDataset(fn="data/2023_08_14/TOA5_7134.Raw_2023_08_14_0749.dat", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
+        SonicDataset(fn="../../data/2023_07_08/TOA5_7134.Raw_2023_07_08_0923.dat", start_time="2023-07-08 00:00:00", end_time="2023-07-08 23:59:00"),
+        SonicDataset(fn="../../data/2023_07_11/TOA5_7134.Raw_2023_07_11_0601.dat", start_time="2023-07-11 00:00:00", end_time="2023-07-11 23:59:00"),
+        SonicDataset(fn="../../data/2023_08_11/TOA5_7134.Raw_2023_08_11_0924.dat", start_time="2023-08-11 00:00:00", end_time="2023-08-11 23:59:00"),
+        SonicDataset(fn="../../data/2023_08_12/TOA5_7134.Raw_2023_08_12_0755.dat", start_time="2023-08-12 00:00:00", end_time="2023-08-12 23:59:00"),
+        SonicDataset(fn="../../data/2023_08_14/TOA5_7134.Raw_2023_08_14_0749.dat", start_time="2023-08-14 00:00:00", end_time="2023-08-14 23:59:00"),
     ]
     return expe_datasets, sonic_datasets
 
