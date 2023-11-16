@@ -102,12 +102,16 @@ class Dataset:
         normed = [i/n for i in var]
         return normed
 
+    def save_spectrum_data(self, puo: str):
+        """empty method to be overwritten by subclasses """
+        pass
+
 class ExpeDataset(Dataset):
     """Dataset class for EXPE data"""
 
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         super().__init__(fn, start_time, end_time)
-        
+
         # temperature
         self.t_raw: np.ndarray = None
         self.t_det: np.ndarray = None
@@ -170,7 +174,17 @@ class ExpeDataset(Dataset):
         self.rH_raw = sensor0_flt["rH"].to_numpy()
         self.p_raw = sensor0_flt["p"].to_numpy()
    
-
+    def save_spectrum_data(self, puo: str):
+        """Save the spectrum data to a csv file."""
+        data = {
+            "t_freqs": self.t_freqs,
+            "t_spectrum": self.t_spectrum,
+            "rH_freqs": self.rH_freqs,
+            "rH_spectrum": self.rH_spectrum,
+            "p_freqs": self.p_freqs,
+            "p_spectrum": self.p_spectrum,
+        }
+        pd.DataFrame.from_dict(data).to_csv(f"../../data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
 class SonicDataset(Dataset):
     """Dataset class for SONIC anemometer data"""
 
@@ -184,13 +198,13 @@ class SonicDataset(Dataset):
         
         self.wind3d: np.ndarray = None
         self.wind3d_det: np.ndarray = None
-        self.wind3dfreqs: np.ndarray = None
+        self.wind3d_freqs: np.ndarray = None
         self.wind3d_spectrum: np.ndarray = None
         self.wind3d_spectrum_smooth: np.ndarray = None
 
         self.wind2d: np.ndarray = None
         self.wind2d_det: np.ndarray = None
-        self.wind2dfreqs: np.ndarray = None
+        self.wind2d_freqs: np.ndarray = None
         self.wind2d_spectrum: np.ndarray = None
         self.wind2d_spectrum_smooth: np.ndarray = None
         
@@ -249,3 +263,15 @@ class SonicDataset(Dataset):
         self.wind3d = df_flt["wind3d"].to_numpy()
         self.wind2d = df_flt["wind2d"].to_numpy()
         self.t_raw = df_flt["T"].to_numpy()
+
+    def save_spectrum_data(self, puo: str):
+        """Save the spectrum data to a csv file."""
+        data = {
+            "wind3d_freqs": self.wind3d_freqs,
+            "wind3d_spectrum": self.wind3d_spectrum,
+            "wind2d_freqs": self.wind2d_freqs,
+            "wind2d_spectrum": self.wind2d_spectrum,
+            "t_freqs": self.t_freqs,
+            "t_spectrum": self.t_spectrum,
+        }
+        pd.DataFrame.from_dict(data).to_csv(f"../../data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)
