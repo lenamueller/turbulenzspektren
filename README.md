@@ -14,9 +14,9 @@ git clone git@github.com:lenamueller/turbulenzspektren.git
 ```bash
 pip install -r requirements.txt
 ```
-3. Run the analysis script containing plotting the temporal coverage, the turbulence spectrum and the averaging
+3. Run the analysis script
 ```bash
-source src/Python_3_11_3/run_analysis.sh
+python src/Python_3_11_3/main.py
 ```
 ## Dependencies
 See `requirements.txt`
