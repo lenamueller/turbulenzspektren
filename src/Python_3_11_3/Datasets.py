@@ -76,7 +76,7 @@ class Dataset:
             self,
             var: np.ndarray,
             sample_rate: int = 1,
-            window: scipy.signal.windows = scipy.signal.windows.tukey,
+            window: scipy.signal.windows = scipy.signal.windows.cosine,
             ) -> None:
         """Calculate the FFT of the time series."""
         
@@ -100,7 +100,6 @@ class Dataset:
         freqs = scipy.fft.fftfreq(n, 1/sample_rate)[1:n//2]
         
         # Calculate the square of the norm of each complex number
-        # Norm = sqrt(Re² + Im²)
         spectrum = np.square(np.abs(fft_output))
 
         # Multiply spectral energy density by frequency
