@@ -2,31 +2,32 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import pandas as pd
 
-from setup import metadata, create_datasets, all_puos
+from setup import metadata, all_puos
+from setup import unique_dates as dates
+from Datasets import ExpeDataset, SonicDataset
 
 
 def plot_temporal_coverage() -> None:
     """Plot the temporal coverage of the experiments."""
     
-    # create Dataset objects
-    expe_datasets, sonic_datasets = create_datasets()
+    # -------------------------------------------------------------------------
+    # setup
+    # -------------------------------------------------------------------------
     
-    # get unique dates from metadata
-    dates = []
-    for puo in all_puos:
-        _, _, _, _, date, day = metadata(puo)
-        if date not in dates:
-            dates.append(date)
+    expe_datasets = [ExpeDataset(puo=f"Day{i}") for i in range(1, 6)]
+    sonic_datasets = [SonicDataset(puo=f"Day{i}") for i in range(1, 6)]
 
-    # get PUO ranges
     ranges = []
-    for puo in all_puos[2:]: # skip first two puos without expe data
+    for puo in all_puos[:]: # skip first two puos without expe data
         _, _, start_date, end_date, _, day = metadata(puo)
         start = pd.to_datetime(start_date, format="%Y-%m-%d %H:%M:%S")
         end = pd.to_datetime(end_date, format="%Y-%m-%d %H:%M:%S")
         ranges.append((day-1, start, end))
     
+    # -------------------------------------------------------------------------
     # plotting
+    # -------------------------------------------------------------------------
+    
     _, ax = plt.subplots(nrows=len(dates), ncols=1, figsize=(15,20))
 
     for i in range(len(dates)):
