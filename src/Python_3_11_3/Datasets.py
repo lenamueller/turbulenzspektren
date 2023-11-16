@@ -22,19 +22,30 @@ import scipy
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
+from setup import metadata
+
 
 class Dataset:
     """Base class for datasets"""
-    def __init__(self, fn: str, start_time: str, end_time: str) -> None:
+    def __init__(self, puo: str) -> None:
         
-        # file name of raw data
-        self.fn: str = fn
+        expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(puo)
         
-        # starting and ending time of period under observation
-        self.start_time: str = start_time
-        self.end_time: str = end_time
+        # file names of raw data
+        self.expe_fn = expe_fn
+        self.sonic_fn = sonic_fn
         
-        # ??
+        # measurement device
+        self.mesuring_device: str = None
+        
+        # temporal meta data
+        self.puo: str = puo
+        self.start_datetime: str = start_datetime
+        self.end_datetime: str = end_datetime
+        self.date: str = date
+        self.day: int = day
+        
+        # Time series
         self.time_raw: np.ndarray = None
         
         # Sample size
@@ -43,7 +54,7 @@ class Dataset:
         # Sample rate [1/Hz]
         self.sr: float = None
         
-        # Sample frequency
+        # Sample frequencies
         self.freqs: np.ndarray = None
         
     def parse_data() -> None:
@@ -97,7 +108,10 @@ class Dataset:
         return np.convolve(var, kernel, mode='valid')
         
     def step_mean(self, var: np.ndarray, window_size: int) -> list:
-        """Calculate the average of the time series of variable var in intervals of x minutes."""
+        """
+        Calculate the average of the time series of variable var in 
+        intervals of x minutes.
+        """
         l = []
         for i in range(0, len(self.time_raw), window_size):
             new_values = [np.mean(var[i:i+window_size])] * window_size
@@ -105,7 +119,10 @@ class Dataset:
         return l
         
     def rolling_mean(self, var: np.ndarray, window_size: int) -> list:
-        """Calculate the rolling mean of the time series of variable var with a window_size of x minutes."""
+        """
+        Calculate the rolling mean of the time series of variable var with 
+        a window_size of x minutes.
+        """
         l = []
         for i in range(len(var)):
             if i < window_size:
@@ -114,7 +131,7 @@ class Dataset:
                 l.append(np.mean(var[i-window_size:i]))
         return l
 
-    def save_spectrum_data(self, puo: str):
+    def save_spectrum_data(self):
         """
         Save spectrum data to csv-files. 
         (Empty method to be overwritten by subclasses)
@@ -124,11 +141,14 @@ class Dataset:
 class ExpeDataset(Dataset):
     """Dataset class for EXPE data"""
 
-    def __init__(self, fn: str, start_time: str, end_time: str) -> None:
-        super().__init__(fn, start_time, end_time)
+    def __init__(self, puo: str) -> None:
+        super().__init__(puo)
+        
+        # measurement device
+        self.measuring_device: str = "EXPE"
         
         # Raw data
-        self.parse_data(fn, self.start_time, self.end_time)
+        self.parse_data(self.expe_fn, self.start_datetime, self.end_datetime)
         
         # Detrended data
         self.t_det = self.detrend_signal(var=self.t_raw)
@@ -151,10 +171,10 @@ class ExpeDataset(Dataset):
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
         self.rH_spectrum_smooth = self.smooth_spectrum(self.rH_spectrum)
         
-    def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
+    def parse_data(self, expe_fn: str, start_datetime: str, end_datetime: str) -> None:
         """Parse the data from the csv-file using sensor 0."""
         
-        df = pd.read_csv(fn, delimiter=";")
+        df = pd.read_csv(expe_fn, delimiter=";")
 
         sensor0 = df.loc[df['Module Command'] == 0]
         rename_cols = {"Value2":"T", "Value3":"rH", "Value4":"p"}
@@ -167,7 +187,7 @@ class ExpeDataset(Dataset):
 
         sensor0["Datetime"] = sensor0['Date'].astype(str) +" "+ sensor0["Time"]
         sensor0["Datetime"] = pd.to_datetime(sensor0["Datetime"], format="%Y-%m-%d %H:%M:%S")
-        sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_time, end_time, inclusive="both")]
+        sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_datetime, end_datetime, inclusive="both")]
 
         self.time_raw = pd.to_datetime(sensor0_flt["Datetime"])
         self.t_raw = sensor0_flt["T"].to_numpy()
@@ -176,7 +196,7 @@ class ExpeDataset(Dataset):
         
         self.n = len(self.time_raw)
    
-    def save_spectrum_data(self, puo: str):
+    def save_spectrum_data(self, fn: str):
         """Save the spectrum data to a csv file."""
         data = {
             "freqs": self.freqs,
@@ -184,17 +204,19 @@ class ExpeDataset(Dataset):
             "rH_spectrum": self.rH_spectrum,
             "p_spectrum": self.p_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(
-            f"data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(fn, index=False)
 
 class SonicDataset(Dataset):
     """Dataset class for SONIC anemometer data"""
 
-    def __init__(self, fn: str, start_time: str, end_time: str) -> None:
-        super().__init__(fn, start_time, end_time)
+    def __init__(self, puo: str) -> None:
+        super().__init__(puo)
+        
+        # measurement device
+        self.measuring_device: str = "SONIC"
         
         # Raw data
-        self.parse_data(fn, self.start_time, self.end_time)
+        self.parse_data(self.sonic_fn, self.start_datetime, self.end_datetime)
         
         # Detrended data
         self.wind3d_det = self.detrend_signal(var=self.wind3d)
@@ -217,10 +239,11 @@ class SonicDataset(Dataset):
         self.wind3d_spectrum_smooth = self.smooth_spectrum(self.wind3d_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
         
-    def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
+        
+    def parse_data(self, sonic_fn: str, start_datetime: str, end_datetime: str) -> None:
         """Parse the data from the dat-file and calculate 2D and 3D wind speed."""
         
-        df = pd.read_csv(fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "T"], skiprows=4)    
+        df = pd.read_csv(sonic_fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "T"], skiprows=4)    
         type_cols = {'windx': float, 'windy': float, 'windz': float, 'T': float}
         df = df.astype(type_cols)
         df = df.dropna()
@@ -229,7 +252,7 @@ class SonicDataset(Dataset):
         df["Datetime"] = pd.to_datetime(df["Datetime"], format="%Y-%m-%d %H:%M:%S")
         df["Datetime"] = df["Datetime"] - pd.Timedelta(hours=1)
         
-        df_flt = df.loc[df['Datetime'].between(start_time, end_time, inclusive="both")]
+        df_flt = df.loc[df['Datetime'].between(start_datetime, end_datetime, inclusive="both")]
 
         def calc_3d_wind(row)-> float:
             """Calculate the absolute wind speed from the 3 wind components."""
@@ -252,7 +275,7 @@ class SonicDataset(Dataset):
         
         self.n = len(self.time_raw)
 
-    def save_spectrum_data(self, puo: str):
+    def save_spectrum_data(self, fn: str):
         """Save the spectrum data to a csv file."""
         data = {
             "freqs": self.freqs,
@@ -260,5 +283,4 @@ class SonicDataset(Dataset):
             "wind2d_spectrum": self.wind2d_spectrum,
             "t_spectrum": self.t_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(
-            f"data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(fn, index=False)
