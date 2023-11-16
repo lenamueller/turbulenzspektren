@@ -27,20 +27,39 @@ class Dataset:
     """Base class for datasets"""
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         
+        # file name of raw data
         self.fn: str = fn
+        
+        # starting and ending time of period under observation
         self.start_time: str = start_time
         self.end_time: str = end_time
-
+        
+        # ??
         self.time_raw: np.ndarray = None
-        self.nf: int = None # Nyquist frequency
+        
+        # Sample size
+        self.n: int = None
+        
+        # Sample rate [1/Hz]
+        self.sr: float = None
+        
+        # Sample frequency
+        self.freqs: np.ndarray = None
         
     def parse_data() -> None:
-        """empty method to be overwritten by subclasses """
+        """
+        Parse raw data.
+        (Empty method to be overwritten by subclasses)
+        """
         pass 
 
     def detrend_signal(self, var: np.ndarray) -> None:
         """Detrend the time series."""
         return np.mean(var) + scipy.signal.detrend(var, type="linear")
+    
+    def sample_freqs(self, n: int, sample_rate: int = 1):
+        """Return the sample frequencies of the time series."""
+        return scipy.fft.fftfreq(n, 1/sample_rate)[1:n//2]
     
     def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1) -> None:
         """Calculate the FFT of the time series."""
@@ -95,14 +114,11 @@ class Dataset:
                 l.append(np.mean(var[i-window_size:i]))
         return l
 
-    def norm_smooth_spectrum(self, var: np.ndarray):
-        # TODO
-        n = len(var)
-        normed = [i/n for i in var]
-        return normed
-
     def save_spectrum_data(self, puo: str):
-        """empty method to be overwritten by subclasses """
+        """
+        Save spectrum data to csv-files. 
+        (Empty method to be overwritten by subclasses)
+        """
         pass
 
 class ExpeDataset(Dataset):
@@ -110,42 +126,30 @@ class ExpeDataset(Dataset):
 
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         super().__init__(fn, start_time, end_time)
-
-        # temperature
-        self.t_raw: np.ndarray = None
-        self.t_det: np.ndarray = None
-        self.t_freqs: np.ndarray = None
-        self.t_spectrum: np.ndarray = None
-        self.t_spectrum_smooth: np.ndarray = None
-
-        # relative humidity
-        self.rH_raw: np.ndarray = None
-        self.rH_det: np.ndarray = None
-        self.rH_freqs: np.ndarray = None
-        self.rH_spectrum: np.ndarray = None
-        self.rH_spectrum_smooth: np.ndarray = None
         
-        # pressure
-        self.p_raw: np.ndarray = None
-        self.p_det: np.ndarray = None
-        self.p_freqs: np.ndarray = None
-        self.p_spectrum: np.ndarray = None
-        self.p_spectrum_smooth: np.ndarray = None
-
+        # Raw data
         self.parse_data(fn, self.start_time, self.end_time)
         
+        # Detrended data
         self.t_det = self.detrend_signal(var=self.t_raw)
         self.rH_det = self.detrend_signal(var=self.rH_raw)
         self.p_det = self.detrend_signal(var=self.p_raw)
         
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=1)
-        self.rH_freqs, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=1)
-        self.p_freqs, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=1)
+        # Sample rate
+        self.sr: float = 1 # 1 Hz
+
+        # Sample frequencies
+        self.freqs: np.ndarray = self.sample_freqs(n=len(self.time_raw), sample_rate=self.sr)
         
+        # Spectrum
+        _, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=self.sr)
+        _, self.rH_spectrum = self.calc_spectrum(var=self.rH_det, sample_rate=self.sr)
+        _, self.p_spectrum = self.calc_spectrum(var=self.p_det, sample_rate=self.sr)
+        
+        # Smoothed spectrum
         self.p_spectrum_smooth = self.smooth_spectrum(self.p_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
         self.rH_spectrum_smooth = self.smooth_spectrum(self.rH_spectrum)
-        
         
     def parse_data(self, fn: str, start_time: str, end_time: str) -> None:
         """Parse the data from the csv-file using sensor 0."""
@@ -169,58 +173,46 @@ class ExpeDataset(Dataset):
         self.t_raw = sensor0_flt["T"].to_numpy()
         self.rH_raw = sensor0_flt["rH"].to_numpy()
         self.p_raw = sensor0_flt["p"].to_numpy()
+        
+        self.n = len(self.time_raw)
    
     def save_spectrum_data(self, puo: str):
         """Save the spectrum data to a csv file."""
         data = {
-            "t_freqs": self.t_freqs,
+            "freqs": self.freqs,
             "t_spectrum": self.t_spectrum,
-            "rH_freqs": self.rH_freqs,
             "rH_spectrum": self.rH_spectrum,
-            "p_freqs": self.p_freqs,
             "p_spectrum": self.p_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(f"data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(
+            f"data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
+
 class SonicDataset(Dataset):
     """Dataset class for SONIC anemometer data"""
 
     def __init__(self, fn: str, start_time: str, end_time: str) -> None:
         super().__init__(fn, start_time, end_time)
         
-        # wind
-        self.windx_raw: np.ndarray = None
-        self.windy_raw: np.ndarray = None
-        self.windz_raw: np.ndarray = None
-        
-        self.wind3d: np.ndarray = None
-        self.wind3d_det: np.ndarray = None
-        self.wind3d_freqs: np.ndarray = None
-        self.wind3d_spectrum: np.ndarray = None
-        self.wind3d_spectrum_smooth: np.ndarray = None
-
-        self.wind2d: np.ndarray = None
-        self.wind2d_det: np.ndarray = None
-        self.wind2d_freqs: np.ndarray = None
-        self.wind2d_spectrum: np.ndarray = None
-        self.wind2d_spectrum_smooth: np.ndarray = None
-        
-        # temperature
-        self.t_raw: np.ndarray = None
-        self.t_det: np.ndarray = None
-        self.t_freqs: np.ndarray = None
-        self.t_spectrum: np.ndarray = None
-        self.t_spectrum_smooth: np.ndarray = None
-
+        # Raw data
         self.parse_data(fn, self.start_time, self.end_time)
         
+        # Detrended data
         self.wind3d_det = self.detrend_signal(var=self.wind3d)
         self.wind2d_det = self.detrend_signal(var=self.wind2d)
         self.t_det = self.detrend_signal(var=self.t_raw)
         
-        self.wind3d_freqs, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=0.5)
-        self.wind2d_freqs, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=0.5)
-        self.t_freqs, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=0.5)
+        # Sample rate
+        self.sr: float = 0.5 # 2 Hz
+
+        # Sample frequencies
+        self.freqs = self.sample_freqs(n=len(self.time_raw), sample_rate=self.sr)
         
+        # Spectrum
+        _, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=self.sr)
+        _, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=self.sr)
+        _, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=self.sr)
+        
+        # Smoothed spectrum
         self.wind2d_spectrum_smooth = self.smooth_spectrum(self.wind2d_spectrum)
         self.wind3d_spectrum_smooth = self.smooth_spectrum(self.wind3d_spectrum)
         self.t_spectrum_smooth = self.smooth_spectrum(self.t_spectrum)
@@ -257,15 +249,16 @@ class SonicDataset(Dataset):
         self.wind3d = df_flt["wind3d"].to_numpy()
         self.wind2d = df_flt["wind2d"].to_numpy()
         self.t_raw = df_flt["T"].to_numpy()
+        
+        self.n = len(self.time_raw)
 
     def save_spectrum_data(self, puo: str):
         """Save the spectrum data to a csv file."""
         data = {
-            "wind3d_freqs": self.wind3d_freqs,
+            "freqs": self.freqs,
             "wind3d_spectrum": self.wind3d_spectrum,
-            "wind2d_freqs": self.wind2d_freqs,
             "wind2d_spectrum": self.wind2d_spectrum,
-            "t_freqs": self.t_freqs,
             "t_spectrum": self.t_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(
+            f"data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)

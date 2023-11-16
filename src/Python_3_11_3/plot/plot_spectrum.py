@@ -29,7 +29,10 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
     # plotting
     # ----------------------------------------------------------------------------
     
-    freqs = {"SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s", "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"}
+    freqs = {
+        "SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s",
+        "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"
+        }
     
     lw = 1.0 if measuring_device == "EXPE" else 0.5
     raw_kw_args =           {"lw": lw, "alpha": 0.4, "c": "darkgrey"}
@@ -50,10 +53,10 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
         ax[0,0].plot(ds.time_raw, ds.t_det, 
                 label="detrended", **det_kw_args)
         
-        ax[1,0].plot(ds.t_freqs, ds.t_spectrum, 
+        ax[1,0].plot(ds.freqs, ds.t_spectrum, 
                 label="raw", **spec_kw_args)
-        ax[1,0].scatter(ds.t_freqs, ds.t_spectrum, **scat_kw_args)
-        ax[1,0].plot(ds.t_freqs[cutoff:len(ds.t_freqs)-cutoff+1], 
+        ax[1,0].scatter(ds.freqs, ds.t_spectrum, **scat_kw_args)
+        ax[1,0].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], 
                 ds.t_spectrum_smooth, **smooth_spec_kw_args, 
                 label="smoothed")
 
@@ -62,10 +65,10 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
                 label="raw", **raw_kw_args)
         ax[0,1].plot(ds.time_raw, ds.wind3d_det, 
                 label="detrended", **det_kw_args)
-        ax[1,1].plot(ds.wind3d_freqs, ds.wind3d_spectrum, 
+        ax[1,1].plot(ds.freqs, ds.wind3d_spectrum, 
                 label="raw", **spec_kw_args)
-        ax[1,1].scatter(ds.wind3d_freqs, ds.wind3d_spectrum, **scat_kw_args)
-        ax[1,1].plot(ds.wind3d_freqs[cutoff:len(ds.wind3d_freqs)-cutoff+1], 
+        ax[1,1].scatter(ds.freqs, ds.wind3d_spectrum, **scat_kw_args)
+        ax[1,1].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], 
                 ds.wind3d_spectrum_smooth, 
                 label="smoothed", **smooth_spec_kw_args)
         
@@ -74,10 +77,10 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
                     label="raw", **raw_kw_args)
         ax[0,2].plot(ds.time_raw, ds.wind2d_det,
                     label="detrended", **det_kw_args)
-        ax[1,2].plot(ds.wind2d_freqs, ds.wind2d_spectrum,
+        ax[1,2].plot(ds.freqs, ds.wind2d_spectrum,
                     label="raw", **spec_kw_args)
-        ax[1,2].scatter(ds.wind2d_freqs, ds.wind2d_spectrum, **scat_kw_args)
-        ax[1,2].plot(ds.wind2d_freqs[cutoff:len(ds.wind2d_freqs)-cutoff+1],
+        ax[1,2].scatter(ds.freqs, ds.wind2d_spectrum, **scat_kw_args)
+        ax[1,2].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1],
                     ds.wind2d_spectrum_smooth,
                     label="smoothed", **smooth_spec_kw_args)
 
@@ -93,26 +96,26 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
         # temperature
         ax[0,0].plot(ds.time_raw, ds.t_raw, label="raw", **raw_kw_args)
         ax[0,0].plot(ds.time_raw, ds.t_det, label="detrended", **det_kw_args)
-        ax[1,0].plot(ds.t_freqs, ds.t_spectrum, label="raw", **spec_kw_args)
-        ax[1,0].scatter(ds.t_freqs, ds.t_spectrum, **scat_kw_args)
+        ax[1,0].plot(ds.freqs, ds.t_spectrum, label="raw", **spec_kw_args)
+        ax[1,0].scatter(ds.freqs, ds.t_spectrum, **scat_kw_args)
         cutoff = int(KERNEL_SIZE/2)
-        ax[1,0].plot(ds.t_freqs[cutoff:len(ds.t_freqs)-cutoff+1], ds.t_spectrum_smooth, 
+        ax[1,0].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], ds.t_spectrum_smooth, 
                 label="smoothed", **smooth_spec_kw_args)
         
         # relative humidity
         ax[0,1].plot(ds.time_raw, ds.rH_raw, label="raw", **raw_kw_args)
         ax[0,1].plot(ds.time_raw, ds.rH_det, label="detrended", **det_kw_args)
-        ax[1,1].plot(ds.rH_freqs, ds.rH_spectrum, label="raw", **spec_kw_args)
-        ax[1,1].scatter(ds.rH_freqs, ds.rH_spectrum, **scat_kw_args)
-        ax[1,1].plot(ds.rH_freqs[cutoff:len(ds.rH_freqs)-cutoff+1], ds.rH_spectrum_smooth, 
+        ax[1,1].plot(ds.freqs, ds.rH_spectrum, label="raw", **spec_kw_args)
+        ax[1,1].scatter(ds.freqs, ds.rH_spectrum, **scat_kw_args)
+        ax[1,1].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], ds.rH_spectrum_smooth, 
                 label="smoothed", **smooth_spec_kw_args)
 
         # pressure
         ax[0,2].plot(ds.time_raw, ds.p_raw, label="raw", **raw_kw_args)
         ax[0,2].plot(ds.time_raw, ds.p_det, label="detrended", **det_kw_args)
-        ax[1,2].plot(ds.p_freqs, ds.p_spectrum, label="raw", **spec_kw_args)
-        ax[1,2].scatter(ds.p_freqs, ds.p_spectrum, **scat_kw_args)
-        ax[1,2].plot(ds.p_freqs[cutoff:len(ds.p_freqs)-cutoff+1], ds.p_spectrum_smooth,
+        ax[1,2].plot(ds.freqs, ds.p_spectrum, label="raw", **spec_kw_args)
+        ax[1,2].scatter(ds.freqs, ds.p_spectrum, **scat_kw_args)
+        ax[1,2].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], ds.p_spectrum_smooth,
                     label="smoothed", **smooth_spec_kw_args)
         
         ax[0,0].set_ylabel("Temperature [°C]")

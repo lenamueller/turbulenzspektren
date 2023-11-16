@@ -25,21 +25,21 @@ def plot_comparison() -> None:
 
     vars = {
         "SONIC": {
-                    "Wind 3D" : ("wind3d_freqs", "wind3d_spectrum"),
-                    "Wind 2D" : ("wind2d_freqs", "wind2d_spectrum"),
-                    "Temp." : ("t_freqs", "t_spectrum"),
+                    "Wind 3D":      ("freqs", "wind3d_spectrum"),
+                    "Wind 2D":      ("freqs", "wind2d_spectrum"),
+                    "Temp.":        ("freqs", "t_spectrum"),
                 },
         "EXPE": {
-                    "Temp." : ("t_freqs", "t_spectrum"),
-                    "rel. Feuchte" : ("rH_freqs", "rH_spectrum"),
-                    "Durck" : ("p_freqs", "p_spectrum"),
+                    "Temp.":        ("freqs", "t_spectrum"),
+                    "rel. Feuchte": ("freqs", "rH_spectrum"),
+                    "Durck":        ("freqs", "p_spectrum"),
                 }
             }
 
     colors = {
-        "Wind 3D": "b",
-        "Wind 2D": "g",
-        "Temp.": "r"
+        "Wind 3D":  "b",
+        "Wind 2D":  "g",
+        "Temp.":    "r"
         }
 
     # -------------------------------------------------------------------------
