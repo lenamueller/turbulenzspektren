@@ -87,8 +87,6 @@ def plot_averaging(ds: ExpeDataset | SonicDataset, type: str) -> None:
     x_labels = ["Time [UTC]", "Time [UTC]", "Window size [min]"]
     
     for i in [0,1,2]:    
-        ax[i].yaxis.set_major_locator(plt.MultipleLocator(1))
-        ax[i].yaxis.set_minor_locator(plt.MultipleLocator(0.5))
         ax[i].grid(which="minor", alpha=0.1)
         ax[i].grid(which="major", alpha=0.55)
         ax[i].set_ylabel(y_labels[i])
