@@ -32,4 +32,4 @@ See `requirements.txt`
     - filename format: `YYYYMMDD-HHMM-Log.txt`
 
 ## Temporary coverage of the data
-![temporal_coverage.png](results/temporal_coverage.png)
+![temporal_coverage.png](results/temporal_coverage/temporal_coverage.png)
