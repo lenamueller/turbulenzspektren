@@ -72,14 +72,23 @@ class Dataset:
         """Return the sample frequencies of the time series."""
         return scipy.fft.fftfreq(n, 1/sample_rate)[1:n//2]
     
-    def calc_spectrum(self, var: np.ndarray, sample_rate: int = 1) -> None:
+    def calc_spectrum(
+            self,
+            var: np.ndarray,
+            sample_rate: int = 1,
+            window: scipy.signal.windows = scipy.signal.windows.tukey,
+            ) -> None:
         """Calculate the FFT of the time series."""
         
         n = len(var)
         
-        # Apply window function (tapering), selection of window functions: 
-        # blackman, hamming, flattop, tukey, cosine, boxcar
-        var = scipy.signal.windows.tukey(M=len(var)) * var
+        # Apply window function
+        # var = window(M=len(var)) * var
+        
+        # Apply winsow function to first and last 10% of the time series
+        n_elem = int(0.1*self.n)
+        var[:n_elem] = window(M=2*n_elem)[:n_elem] * var[:n_elem]
+        var[self.n - n_elem:] = window(M=2*n_elem)[n_elem:] * var[self.n - n_elem:]
         
         # 1D Discrete Fourier Transform
         fft_output = scipy.fft.fft(var)
