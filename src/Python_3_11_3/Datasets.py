@@ -66,7 +66,7 @@ class Dataset:
 
     def detrend_signal(self, var: np.ndarray) -> None:
         """Detrend the time series."""
-        return np.mean(var) + scipy.signal.detrend(var, type="linear")
+        return scipy.signal.detrend(var, type="linear")
     
     def sample_freqs(self, n: int, sample_rate: int = 1):
         """Return the sample frequencies of the time series."""
@@ -77,21 +77,22 @@ class Dataset:
             var: np.ndarray,
             sample_rate: int = 1,
             window: scipy.signal.windows = scipy.signal.windows.cosine,
-            ) -> None:
+            ):
         """Calculate the FFT of the time series."""
         
         n = len(var)
         
         # Apply window function
-        # var = window(M=len(var)) * var
-        
+        # var2 = window(M=len(var)) * var
+
         # Apply winsow function to first and last 10% of the time series
+        var2 = var.copy()
         n_elem = int(0.1*self.n)
-        var[:n_elem] = window(M=2*n_elem)[:n_elem] * var[:n_elem]
-        var[self.n - n_elem:] = window(M=2*n_elem)[n_elem:] * var[self.n - n_elem:]
+        var2[:n_elem] = window(M=2*n_elem)[:n_elem] * var2[:n_elem]
+        var2[self.n - n_elem:] = window(M=2*n_elem)[n_elem:] * var2[self.n - n_elem:]
         
         # 1D Discrete Fourier Transform
-        fft_output = scipy.fft.fft(var)
+        fft_output = scipy.fft.fft(var2)
         
         # Remove first element (mean) and frequencies above Nyquist frequency.
         fft_output = fft_output[1:n//2]
@@ -240,7 +241,7 @@ class SonicDataset(Dataset):
         # Spectrum
         _, self.wind3d_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=self.sr)
         _, self.wind2d_spectrum = self.calc_spectrum(var=self.wind2d_det, sample_rate=self.sr)
-        _, self.t_spectrum = self.calc_spectrum(var=self.wind3d_det, sample_rate=self.sr)
+        _, self.t_spectrum = self.calc_spectrum(var=self.t_det, sample_rate=self.sr)
         
         # Smoothed spectrum
         self.wind2d_spectrum_smooth = self.smooth_spectrum(self.wind2d_spectrum)
