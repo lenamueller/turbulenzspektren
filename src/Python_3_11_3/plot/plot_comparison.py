@@ -20,7 +20,6 @@ def plot_comparison() -> None:
     # setup
     # -------------------------------------------------------------------------
     
-    puos = [puo for puo in all_puos if puo not in ["PUO_00_0", "PUO_00_1"]]
     measuring_device = "SONIC"
 
     vars = {
@@ -48,7 +47,7 @@ def plot_comparison() -> None:
 
     _, ax = plt.subplots(3, 4, figsize=(20, 10), sharex=False, sharey=True)
 
-    for i, puo in enumerate(puos):
+    for i, puo in enumerate(all_puos):
         row_i = i // 4
         col_i = i % 4
         

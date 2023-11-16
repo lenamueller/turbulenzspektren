@@ -3,38 +3,23 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from Datasets import ExpeDataset, SonicDataset
-from setup import metadata, KERNEL_SIZE
+from setup import KERNEL_SIZE
 
 np.seterr(divide='ignore')
 
 
-def plot_spectrum(puo: str, measuring_device: str) -> None:
-    """Plots the turbulence spectra for the sonic anemometer and the
-    EXPE data."""
+def plot_spectrum(ds: ExpeDataset | SonicDataset) -> None:
+    """Plots the turbulence spectra."""
     
-    # ----------------------------------------------------------------------------
-    # create Dataset objects
-    # ----------------------------------------------------------------------------
+    cutoff = int(KERNEL_SIZE/2)
     
-    expe_fn, sonic_fn, start_date, end_date, date, _ = metadata(puo)
-    
-    if measuring_device == "SONIC":
-        ds = SonicDataset(fn=sonic_fn, start_time=start_date, end_time=end_date)
-    elif measuring_device == "EXPE":
-        ds = ExpeDataset(fn=expe_fn, start_time=start_date, end_time=end_date)
-    else:
-        raise ValueError("measuring_device must be 'SONIC' or 'EXPE'")
-
-    # ----------------------------------------------------------------------------
-    # plotting
-    # ----------------------------------------------------------------------------
-    
-    freqs = {
+    subtitle = {
         "SONIC": "sample rate = 2 Hz, $\Delta t$ = 0.5 s",
         "EXPE": "sample rate = 1 Hz, $\Delta t$ = 1.0 s"
         }
     
-    lw = 1.0 if measuring_device == "EXPE" else 0.5
+    lw = 1.0 if ds.measuring_device == "EXPE" else 0.5
+    
     raw_kw_args =           {"lw": lw, "alpha": 0.4, "c": "darkgrey"}
     det_kw_args =           {"lw": lw, "alpha": 0.8, "c": "b"}
     spec_kw_args =          {"lw": 0.3, "alpha": 0.3, "c": "darkgrey"}
@@ -43,42 +28,33 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
     range_kw_args =         {"alpha": 0.1, "color": "orange"}
     
     fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(20,10))
-    cutoff = int(KERNEL_SIZE/2)
-
-    if measuring_device == "SONIC":
+    
+    if ds.measuring_device == "SONIC":
         
         # temperature
-        ax[0,0].plot(ds.time_raw, ds.t_raw, 
-                label="raw", **raw_kw_args)
-        ax[0,0].plot(ds.time_raw, ds.t_det, 
-                label="detrended", **det_kw_args)
+        ax[0,0].plot(ds.time_raw, ds.t_raw, label="raw", **raw_kw_args)
+        ax[0,0].plot(ds.time_raw, ds.t_det, label="detrended", **det_kw_args)
         
-        ax[1,0].plot(ds.freqs, ds.t_spectrum, 
-                label="raw", **spec_kw_args)
+        ax[1,0].plot(ds.freqs, ds.t_spectrum, label="raw", **spec_kw_args)
         ax[1,0].scatter(ds.freqs, ds.t_spectrum, **scat_kw_args)
         ax[1,0].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], 
                 ds.t_spectrum_smooth, **smooth_spec_kw_args, 
                 label="smoothed")
 
         # 3d wind 
-        ax[0,1].plot(ds.time_raw, ds.wind3d, 
-                label="raw", **raw_kw_args)
-        ax[0,1].plot(ds.time_raw, ds.wind3d_det, 
-                label="detrended", **det_kw_args)
-        ax[1,1].plot(ds.freqs, ds.wind3d_spectrum, 
-                label="raw", **spec_kw_args)
+        ax[0,1].plot(ds.time_raw, ds.wind3d, label="raw", **raw_kw_args)
+        ax[0,1].plot(ds.time_raw, ds.wind3d_det, label="detrended", **det_kw_args)
+        
+        ax[1,1].plot(ds.freqs, ds.wind3d_spectrum, label="raw", **spec_kw_args)
         ax[1,1].scatter(ds.freqs, ds.wind3d_spectrum, **scat_kw_args)
         ax[1,1].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1], 
                 ds.wind3d_spectrum_smooth, 
                 label="smoothed", **smooth_spec_kw_args)
         
         # 2d wind (horizontal wind)
-        ax[0,2].plot(ds.time_raw, ds.wind2d,
-                    label="raw", **raw_kw_args)
-        ax[0,2].plot(ds.time_raw, ds.wind2d_det,
-                    label="detrended", **det_kw_args)
-        ax[1,2].plot(ds.freqs, ds.wind2d_spectrum,
-                    label="raw", **spec_kw_args)
+        ax[0,2].plot(ds.time_raw, ds.wind2d, label="raw", **raw_kw_args)
+        ax[0,2].plot(ds.time_raw, ds.wind2d_det, label="detrended", **det_kw_args)
+        ax[1,2].plot(ds.freqs, ds.wind2d_spectrum, label="raw", **spec_kw_args)
         ax[1,2].scatter(ds.freqs, ds.wind2d_spectrum, **scat_kw_args)
         ax[1,2].plot(ds.freqs[cutoff:len(ds.freqs)-cutoff+1],
                     ds.wind2d_spectrum_smooth,
@@ -91,7 +67,7 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
         ax[0,1].set_ylim((0, 5))
         ax[0,2].set_ylim((0, 5))
 
-    elif measuring_device == "EXPE":
+    elif ds.measuring_device == "EXPE":
         
         # temperature
         ax[0,0].plot(ds.time_raw, ds.t_raw, label="raw", **raw_kw_args)
@@ -130,7 +106,7 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
         for row_i in range(2):
             
             # write one common text above the 2 upper plots
-            title = f"Date: {date}\n\n{measuring_device} data ({freqs[measuring_device]})\n"
+            title = f"Date: {ds.date}\n\n{ds.measuring_device} data ({subtitle[ds.measuring_device]})\n"
             fig.suptitle(title, fontweight='bold', fontsize=14)
             
             if row_i == 0: # time series plots
@@ -144,7 +120,7 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
                 ax[row_i, col_i].set_xlabel("Frequency [Hz]")
                 max_smooth_val = np.max(ds.t_spectrum_smooth)
                 max_smooth_val *= 1.25
-                if measuring_device == "SONIC":
+                if ds.measuring_device == "SONIC":
                     ax[row_i, col_i].set_ylim((0, max_smooth_val))
                 else:
                     pass
@@ -163,6 +139,6 @@ def plot_spectrum(puo: str, measuring_device: str) -> None:
             ax[row_i, col_i].legend(loc="upper right")
         
     plt.tight_layout()
-    fn = f"{puo}_{measuring_device}_FFT.png"
+    fn = f"{ds.puo}_{ds.measuring_device}_FFT.png"
     plt.savefig(f"results/fft/{fn}", dpi=300, bbox_inches="tight")
     plt.close()
