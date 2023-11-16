@@ -12,6 +12,7 @@ from plot.plot_temporal_coverage import plot_temporal_coverage
 from plot.plot_spectrum import plot_spectrum
 from plot.plot_averaging import plot_averaging
 from plot.plot_comparison import plot_comparison
+from plot.plot_influence_windows import plot_influence_windows, plot_windows
 
 
 print("Run analysis...")
@@ -21,6 +22,9 @@ plot_temporal_coverage()
 
 print("\tPlotting comparison of all PUOs")
 plot_comparison()
+
+print("Plotting window functions")
+plot_windows()
 
 for puo in all_puos:
     print("-> PUO", puo)
@@ -43,7 +47,7 @@ for puo in all_puos:
     plot_averaging(ds_sonic, type="rolling_mean")
     plot_averaging(ds_sonic, type="fixed_intervalls")
     
-    # Plot sensitivity analysis
-    # TODO
+    # # Plot sensitivity analysis
+    plot_influence_windows(ds_sonic)
 
 print("Analysis done.")
