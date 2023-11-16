@@ -16,7 +16,6 @@ Classes:
 - SonicDataset: Dataset class for SONIC anemometer data.
 """
 
-import sys
 import numpy as np
 import pandas as pd
 import scipy
@@ -166,9 +165,6 @@ class ExpeDataset(Dataset):
         sensor0["Datetime"] = pd.to_datetime(sensor0["Datetime"], format="%Y-%m-%d %H:%M:%S")
         sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_time, end_time, inclusive="both")]
 
-        if len(sensor0_flt) == 0:
-            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points. No EXPE data for this time period.")
-
         self.time_raw = pd.to_datetime(sensor0_flt["Datetime"])
         self.t_raw = sensor0_flt["T"].to_numpy()
         self.rH_raw = sensor0_flt["rH"].to_numpy()
@@ -184,7 +180,7 @@ class ExpeDataset(Dataset):
             "p_freqs": self.p_freqs,
             "p_spectrum": self.p_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(f"../../data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(f"data/spectra_data/{puo}_EXPE_spectrum_data.csv", index=False)
 class SonicDataset(Dataset):
     """Dataset class for SONIC anemometer data"""
 
@@ -242,8 +238,6 @@ class SonicDataset(Dataset):
         df["Datetime"] = df["Datetime"] - pd.Timedelta(hours=1)
         
         df_flt = df.loc[df['Datetime'].between(start_time, end_time, inclusive="both")]
-        if len(df_flt) == 0:
-            sys.exit(f"\tTemporal filtering of {self.fn} results in 0 data points. No SONIC data for this time period.")
 
         def calc_3d_wind(row)-> float:
             """Calculate the absolute wind speed from the 3 wind components."""
@@ -274,4 +268,4 @@ class SonicDataset(Dataset):
             "t_freqs": self.t_freqs,
             "t_spectrum": self.t_spectrum,
         }
-        pd.DataFrame.from_dict(data).to_csv(f"../../data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)
+        pd.DataFrame.from_dict(data).to_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv", index=False)
