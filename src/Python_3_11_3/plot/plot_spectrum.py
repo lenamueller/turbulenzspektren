@@ -115,7 +115,7 @@ def plot_spectrum(ds: ExpeDataset | SonicDataset) -> None:
                 ax[row_i, col_i].set_xlim(ds.time_raw.tolist()[0], ds.time_raw.tolist()[-1])
             
             else: # spectrum plots
-                ax[row_i, col_i].axvspan(1/(60*1), 1/(60*15), label="1 min - 15 min", **range_kw_args)
+                ax[row_i, col_i].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
                 ax[row_i, col_i].set_ylabel("Spectral Energy Density * Frequency")
                 ax[row_i, col_i].set_xlabel("Frequency [Hz]")
                 max_smooth_val = np.max(ds.t_spectrum_smooth)
