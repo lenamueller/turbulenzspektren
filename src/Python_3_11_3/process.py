@@ -26,8 +26,9 @@ def detrend_signal(y: np.ndarray) -> np.ndarray:
 
 def taper_signal(
         y: np.ndarray,
-        func: scipy.signal.windows,
-        perc: float
+        perc: float, 
+        func: scipy.signal.windows = scipy.signal.windows.cosine
+        
         ) -> np.ndarray:
     """Taper the signal.
 
