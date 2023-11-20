@@ -1,16 +1,24 @@
-KERNEL_SIZE = 10
+variables = {"EXPE": ["t", "rh", "p"], "SONIC": ["t", "wind3d", "wind2d"]}
+
+labels = {
+    "t": "Temperature [°C]",
+    "rh": "Relative Humidity [%]",
+    "p": "Pressure [hPa]",
+    "wind3d": "Wind 3D [m/s]",
+    "wind2d": "Wind 2D [m/s]"
+    }
+
 TAPERING_SIZE = 0.1
+KERNEL_SIZE = 10
+WINDOWS_MIN = [1, 2, 3, 5, 10, 20, 30]
+SAMPLE_RATE = {"EXPE": 1, "SONIC": 2}
+
 
 unique_dates = ["08.07.2023", "11.07.2023", "11.08.2023", "12.08.2023", "14.08.2023"]
 
 all_puos = ["PUO_01", "PUO_02", "PUO_03", "PUO_04", "PUO_05", "PUO_06", 
             "PUO_07", "PUO_08", "PUO_09", "PUO_10", "PUO_11"]
 
-sample_rates = {"EXPE": 1, "SONIC": 2}
-
-
-variables = {"EXPE": ["spectrum_t", "spectrum_rh", "spectrum_p"],
-             "SONIC": ["spectrum_t", "spectrum_wind3d", "spectrum_wind2d"]}
 
 def metadata(period: str) -> tuple:
     """
