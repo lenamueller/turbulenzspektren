@@ -5,6 +5,11 @@ unique_dates = ["08.07.2023", "11.07.2023", "11.08.2023", "12.08.2023", "14.08.2
 all_puos = ["PUO_01", "PUO_02", "PUO_03", "PUO_04", "PUO_05", "PUO_06", 
             "PUO_07", "PUO_08", "PUO_09", "PUO_10", "PUO_11"]
 
+sample_rates = {"EXPE": 1, "SONIC": 2}
+
+variables = {"EXPE": ["spectrum_t", "spectrum_rh", "spectrum_p"],
+             "SONIC": ["spectrum_t", "spectrum_wind3d", "spectrum_wind2d"]}
+
 def metadata(period: str) -> tuple:
     """
     Return metadata for a given period. The period can be a whole day or a

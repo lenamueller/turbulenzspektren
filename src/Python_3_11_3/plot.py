@@ -1,8 +1,10 @@
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
-from process import detrend_signal, taper_signal, calc_spectrum, smooth, roll_mean
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
+from setup import all_puos, sample_rates, variables, metadata
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -75,9 +77,55 @@ def plot_spectrum(
         
     plt.savefig(f"plots/spectra/spec_{fn}.png", dpi=300, bbox_inches="tight")
 
-def plot_spectrum_comp():
+def plot_spectrum_comp(device: str) -> None:
     """Plots a comparison of all smoothed spectra."""
-    pass
+    
+    labels = {
+        "spectrum_t": "Temperature [°C]",
+        "spectrum_rh": "Relative Humidity [%]",
+        "spectrum_p": "Pressure [hPa]",
+        "spectrum_wind3d": "Wind 3D [m/s]",
+        "spectrum_wind2d": "Wind 2D [m/s]"
+        }
+    
+    for var in variables[device]:
+
+        fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
+        fig.suptitle(labels[var]+f"\n\n({device}, {sample_rates[device]} Hz)", **title_kwargs)
+    
+        for i, puo in enumerate(all_puos):
+            df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
+            
+            row_i = i // 4
+            col_i = i % 4
+            
+            # plot data            
+            ax[row_i, col_i].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
+                                     color="grey")
+            ax[row_i, col_i].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                                  lw=0.3, label=labels[var], c="r")
+            ax[row_i, col_i].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
+                                     **range_kw_args)
+            
+            
+            # plot setup
+            _, _, start_datetime, end_datetime, date, _ = metadata(puo)
+            ax[row_i, col_i].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - \
+                {end_datetime[10:-3]}", **title_kwargs)
+            ax[0, 0].legend(loc='upper left')
+            ax[row_i, col_i].set_xlim((1e-4, 1e-1))
+            ax[row_i, col_i].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
+            ax[row_i, col_i].set_xscale("log")
+            ax[row_i, col_i].set_xlabel("Frequency [Hz]")
+            ax[row_i, 0].set_ylabel("Spectral density [(unit)²/Hz]")
+            ax[2, 3].set_visible(False)
+                
+            ax2 = ax[row_i, col_i].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
+            ax2.set_xticks([10000, 1000, 100, 10])
+            ax2.set_xlabel("Period [s]")
+        
+        plt.tight_layout()
+        plt.savefig(f"plots/spectra/spectra_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
 
 def plot_avg():
     """Plots the average of a time series."""
