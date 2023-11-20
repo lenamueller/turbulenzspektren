@@ -7,6 +7,7 @@ Description: Main file for running the analysis.
 """
 
 import pandas as pd
+pd.set_option("mode.chained_assignment", None)
 
 from setup import KERNEL_SIZE, TAPERING_SIZE
 from setup import metadata, all_puos, sample_rates
@@ -18,6 +19,8 @@ from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win, plot_win_
 # -----------------------------------------------------------------------------
 # calculations
 # -----------------------------------------------------------------------------
+
+print("Run calculations...")
 
 for period in all_puos:
     for device in ["SONIC", "EXPE"]:
@@ -99,6 +102,7 @@ for period in all_puos:
 # plotting
 # -----------------------------------------------------------------------------
 
+print("Run plotting...")
 exit()
 plot_win()
 
