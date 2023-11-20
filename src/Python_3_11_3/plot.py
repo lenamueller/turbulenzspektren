@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
-from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, sample_freq
 from setup import all_puos, sample_rates, variables, metadata, window_functions
 
 
@@ -98,32 +98,28 @@ def plot_spectrum_comp(device: str) -> None:
         for i, puo in enumerate(all_puos):
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
             
-            row_i = i // 4
-            col_i = i % 4
-            
             # plot data            
-            ax[row_i, col_i].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
+            ax[i // 4, i % 4].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
                                      color="grey")
-            ax[row_i, col_i].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+            ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
                                   lw=0.3, label=labels[var], c="r")
-            ax[row_i, col_i].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
+            ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
                                      **range_kw_args)
-            
             
             # plot setup
             _, _, start_datetime, end_datetime, date, _ = metadata(puo)
-            ax[row_i, col_i].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - \
+            ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - \
                 {end_datetime[10:-3]}", **title_kwargs)
             ax[0, 0].legend(loc='upper left')
-            ax[row_i, col_i].set_xlim((1e-4, 1e-1))
-            ax[row_i, col_i].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
-            ax[row_i, col_i].set_xscale("log")
-            ax[row_i, col_i].set_xlabel("Frequency [Hz]")
-            ax[row_i, 0].set_ylabel("Spectral density [(unit)²/Hz]")
+            ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
+            ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
+            ax[i // 4, i % 4].set_xscale("log")
+            ax[i // 4, i % 4].set_xlabel("Frequency [Hz]")
+            ax[i // 4, 0].set_ylabel("Spectral density [(unit)²/Hz]")
             ax[2, 3].set_visible(False)
-            ax[row_i, col_i].grid()
+            ax[i // 4, i % 4].grid()
                 
-            ax2 = ax[row_i, col_i].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
+            ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
             ax2.set_xticks([10000, 1000, 100, 10])
             ax2.set_xlabel("Period [s]")
             
@@ -144,18 +140,17 @@ def plot_win():
     
     for i, wf in enumerate(window_functions):
         
-        
-        x = np.arange(100)
-        
         # plot full range
-        y_tap = taper_signal(y=np.ones(100), perc=0.5, func=wf)
-        ax[i//4, i%4].plot(x, y_tap, c="grey", lw=0.8, 
-                           label="Full range")
+        ax[i//4, i%4].plot(
+            np.arange(100), 
+            taper_signal(y=np.ones(100), perc=0.5, func=wf),
+            c="grey", lw=0.8, label="Full range")
         
         # taper only first and last 10 %
-        y_tap = taper_signal(y=np.ones(100), perc=0.1, func=wf)
-        ax[i//4, i%4].plot(x, y_tap, c="navy", lw=0.8, 
-                           label="First and last 10 %")
+        ax[i//4, i%4].plot(
+            np.arange(100), 
+            taper_signal(y=np.ones(100), perc=0.1, func=wf),
+            c="navy", lw=0.8, label="First and last 10 %")
         
         ax[i//4, i%4].set_title(wf.__name__)
         ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)
@@ -164,9 +159,28 @@ def plot_win():
     plt.savefig("plots/sensitivity_wf/window_functions.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_win_influence():
-    """Plots the influence of the window function."""
-    pass
+def plot_win_influence(x: np.ndarray, y: np.ndarray, subtitle: str, fn: str) -> None:
+    """Plots the influence of different window functions on the spectrum."""
+    
+    fig, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
+                           sharex=True, sharey=True)
+    
+    fig.suptitle(subtitle, **title_kwargs)
+    
+    for i, wf in enumerate(window_functions):
+        freq, spec = calc_spectrum(x, taper_signal(detrend_signal(y), 0.1, func=wf))
+        spec_roll = roll_mean(spec, win_len=10)
+        
+        ax[i//4, i%4].plot(freq, spec_roll, 
+                           label=wf.__name__, c="navy", lw=0.4)
+        ax[i//4, i%4].set_xscale("log")
+        ax[i//4, i%4].set_xlim((1e-4, 1e-1))
+        ax[i//4, i%4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
+        ax[i//4, i%4].set_title(wf.__name__)
+        ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)
+
+    plt.savefig(f"plots/sensitivity_wf/{fn}.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 def plot_temporal_coverage():
     """Plots the temporal coverage of the experiments."""

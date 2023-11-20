@@ -8,10 +8,10 @@ Description: Main file for running the analysis.
 
 import pandas as pd
 
-from setup import metadata, all_puos
+from setup import metadata, all_puos, sample_rates
 from parse import parse_data
 from process import *
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win
+from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win, plot_win_influence
 
 
 period = "PUO_01"
@@ -25,11 +25,11 @@ for device in ["EXPE", "SONIC"]:
 
 
 for period in all_puos:
-    _, _, start_datetime, end_datetime, date, _ = metadata(period)
+    expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
     
     for device in ["EXPE", "SONIC"]:
         data = parse_data(device, period)
-
+        
         match device:
             case "EXPE":
                 
@@ -64,6 +64,17 @@ for period in all_puos:
                 plot_spectrum(dt, p, f"{period}_{device}_p", "Pressure [hPa]",
                         title = f"Pressure [hPa]\n\n {date} ({device}, 1 Hz)\n")
                 
+                # plot influence of window function
+                plot_win_influence(dt, t, subtitle=f"Temperature [°C]\n{date}: {start_datetime[10:-3]} - 
+                                   {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)", 
+                                   fn=f"wf_{period}_{device}")
+                plot_win_influence(dt, rh, subtitle=f"Relative Humidity [%]\n{date}: {start_datetime[10:-3]} -
+                                   {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)",
+                                    fn=f"wf_{period}_{device}")
+                plot_win_influence(dt, p, subtitle=f"Pressure [hPa]\n{date}: {start_datetime[10:-3]} -
+                                    {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)",
+                                    fn=f"wf_{period}_{device}")
+                
             case "SONIC":
 
                 # load data
@@ -96,4 +107,14 @@ for period in all_puos:
                         title = f"3D Wind [m/s] \n\n {date} ({device}, 2 Hz)\n")
                 plot_spectrum(dt, wind2d, f"{period}_{device}_p", "2D Wind [m/s]",
                         title = f"2D Wind [m/s]\n\n {date} ({device}, 2 Hz)\n")
-                
+
+                # plot influence of window function
+                plot_win_influence(dt, t, subtitle=f"Temperature [°C]\n{date}: {start_datetime[10:-3]} - 
+                                   {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)", 
+                                   fn=f"wf_{period}_{device}")
+                plot_win_influence(dt, wind3d, subtitle=f"3D Wind [m/s]\n{date}: {start_datetime[10:-3]} -
+                                    {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)",
+                                    fn=f"wf_{period}_{device}")
+                plot_win_influence(dt, wind2d, subtitle=f"2D Wind [m/s]\n{date}: {start_datetime[10:-3]} -
+                                    {end_datetime[10:-3]}\n({device}, {sample_rates[device]} Hz)",
+                                    fn=f"wf_{period}_{device}")
