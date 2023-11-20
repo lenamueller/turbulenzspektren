@@ -2,7 +2,11 @@ Made as part of the course "MHYD11 Vertiefungspraxis Meteorologie" at TU Dresden
 
 # Content
 ## `data/`
-contains the raw data sorted by measuring date
+`YYYY_MM_DD/` contains the raw data sorted by measuring date
+
+`spectra_data/` contains the spectra data
+
+`timeseries_data/` contains the time series data (raw, detrended, tapered)
 
 ## `results/`
 contains the results of the analysis
@@ -32,11 +36,11 @@ Temperature, relative Humidity and Pressure. Sonic variables are Datetime,
 
 ### `plot.py` plots the data
 - ``plot_ts(x, y, fn, title)`` plots the processing steps of the time series
-- ``plot_spectrum(todo)`` plots the spectrum (with smoothing) of a time series
-- ``plot_spectrum_comp(todo)`` plots a comparison of all smoothed spectra
+- ``plot_spectrum(x, y, fn, ylabel, title)`` plots the spectrum (with smoothing) of a time series
+- ``plot_spectrum_comp(device)`` plots a comparison of all smoothed spectra
 - ``plot_avg(todo)`` plots the average of a time series
-- ``plot_win(todo)`` plots the nonparametric window functions
-- ``plot_win_influcence(todo)`` plots the influence of the window function
+- ``plot_win()`` plots the nonparametric window functions
+- ``plot_win_influcence(x, y, subtitle, fn)`` plots the influence of the window function
 - ``plot_temporal_coverage(todo)`` plots the temporal coverage of the experiments
 
 
