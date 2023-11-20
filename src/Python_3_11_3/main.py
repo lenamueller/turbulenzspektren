@@ -11,15 +11,18 @@ import pandas as pd
 from setup import metadata, all_puos
 from parse import parse_data
 from process import *
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp
+from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win
 
 
 period = "PUO_01"
 device = "EXPE"
 
+
+plot_win()
+
 for device in ["EXPE", "SONIC"]:
     plot_spectrum_comp(device)
-    
+
 
 for period in all_puos:
     _, _, start_datetime, end_datetime, date, _ = metadata(period)

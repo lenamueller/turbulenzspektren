@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
-from setup import all_puos, sample_rates, variables, metadata
+from setup import all_puos, sample_rates, variables, metadata, window_functions
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -40,7 +40,8 @@ def plot_ts(
         ax[row_i].grid(True, **grid_kwargs)
     
     plt.savefig(f"plots/preprocessing/preprocess_{fn}.png", dpi=300, bbox_inches="tight")
-
+    plt.close()
+    
 def plot_spectrum(
         x: np.ndarray, y: np.ndarray,
         fn: str, ylabel: str, title: str
@@ -76,7 +77,8 @@ def plot_spectrum(
         ax[i].legend(loc="upper left")
         
     plt.savefig(f"plots/spectra/spec_{fn}.png", dpi=300, bbox_inches="tight")
-
+    plt.close()
+    
 def plot_spectrum_comp(device: str) -> None:
     """Plots a comparison of all smoothed spectra."""
     
@@ -119,21 +121,48 @@ def plot_spectrum_comp(device: str) -> None:
             ax[row_i, col_i].set_xlabel("Frequency [Hz]")
             ax[row_i, 0].set_ylabel("Spectral density [(unit)²/Hz]")
             ax[2, 3].set_visible(False)
+            ax[row_i, col_i].grid()
                 
             ax2 = ax[row_i, col_i].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
             ax2.set_xticks([10000, 1000, 100, 10])
             ax2.set_xlabel("Period [s]")
-        
+            
+            
         plt.tight_layout()
         plt.savefig(f"plots/spectra/spectra_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
-
+        plt.close()
+        
 def plot_avg():
     """Plots the average of a time series."""
     pass
 
 def plot_win():
     """Plots the nonparametric window functions."""
-    pass
+    
+    _, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
+                           sharex=True, sharey=True)
+    
+    for i, wf in enumerate(window_functions):
+        
+        
+        x = np.arange(100)
+        
+        # plot full range
+        y_tap = taper_signal(y=np.ones(100), perc=0.5, func=wf)
+        ax[i//4, i%4].plot(x, y_tap, c="grey", lw=0.8, 
+                           label="Full range")
+        
+        # taper only first and last 10 %
+        y_tap = taper_signal(y=np.ones(100), perc=0.1, func=wf)
+        ax[i//4, i%4].plot(x, y_tap, c="navy", lw=0.8, 
+                           label="First and last 10 %")
+        
+        ax[i//4, i%4].set_title(wf.__name__)
+        ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)
+
+    ax[0, 0].legend(loc='center')
+    plt.savefig("plots/sensitivity_wf/window_functions.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 def plot_win_influence():
     """Plots the influence of the window function."""

@@ -155,3 +155,17 @@ def metadata(period: str) -> tuple:
             day =               5
         
     return expe_fn, sonic_fn, start_datetime, end_datetime, date, day
+
+
+import scipy.signal.windows as wf
+
+window_functions = [
+    # No parameters:
+    wf.boxcar, wf.exponential, wf.blackman, wf.blackmanharris, 
+    wf.bohman, wf.barthann, wf.cosine, wf.flattop, wf.hamming, wf.hann, 
+    wf.lanczos, wf.nuttall, wf.parzen, wf.taylor, wf.triang, wf.tukey,
+    
+    # Need parameters:
+    # wf.chebwin, wf.dpss, wf.gaussian, wf.general_cosine, wf.general_gaussian,
+    # wf.general_hamming, wf.kaiser, wf.kaiser_bessel_derived, 
+    ]
