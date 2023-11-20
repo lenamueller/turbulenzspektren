@@ -28,7 +28,6 @@ def taper_signal(
         y: np.ndarray,
         perc: float, 
         func: scipy.signal.windows = scipy.signal.windows.cosine
-        
         ) -> np.ndarray:
     """Taper the signal.
 
@@ -91,7 +90,7 @@ def smooth(x: np.ndarray, y: np.ndarray, win_len: int
     return xs, y_smo
 
 def roll_mean(y: np.ndarray, win_len: int
-              ) -> tuple[np.ndarray, np.ndarray]:
+              ) -> np.ndarray:
     """Calculate the rolling mean of the time series (x, y) 
     using a window of length win_len."""
     y_mean = []
@@ -103,7 +102,7 @@ def roll_mean(y: np.ndarray, win_len: int
     return y_mean
 
 def step_mean(y: np.ndarray, win_len: int
-              ) -> tuple[np.ndarray, np.ndarray]:
+              ) -> np.ndarray:
     """Calculate the step mean of the time series (x, y)
     using a window of length win_len."""
     y_mean = []
