@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, sample_freq
-from setup import all_puos, sample_rates, variables, metadata, window_functions
+from setup import all_puos, variables, metadata, window_functions
+from setup import WINDOWS_MIN, SAMPLE_RATE
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -83,17 +84,17 @@ def plot_spectrum_comp(device: str) -> None:
     """Plots a comparison of all smoothed spectra."""
     
     labels = {
-        "spectrum_t": "Temperature [°C]",
-        "spectrum_rh": "Relative Humidity [%]",
-        "spectrum_p": "Pressure [hPa]",
-        "spectrum_wind3d": "Wind 3D [m/s]",
-        "spectrum_wind2d": "Wind 2D [m/s]"
+        "t_spec": "Temperature [°C]",
+        "rh_spec": "Relative Humidity [%]",
+        "p_spec": "Pressure [hPa]",
+        "wind3d_spec": "Wind 3D [m/s]",
+        "wind2d_spec": "Wind 2D [m/s]"
         }
     
     for var in variables[device]:
-
+        var = var+"_spec"
         fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
-        fig.suptitle(labels[var]+f"\n\n({device}, {sample_rates[device]} Hz)", **title_kwargs)
+        fig.suptitle(labels[var]+f"\n\n({device}, {SAMPLE_RATE[device]} Hz)", **title_kwargs)
     
         for i, puo in enumerate(all_puos):
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
@@ -128,9 +129,36 @@ def plot_spectrum_comp(device: str) -> None:
         plt.savefig(f"plots/spectra/spectra_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
         plt.close()
         
-def plot_avg():
+def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
     """Plots the average of a time series."""
-    pass
+
+    fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10,7), sharex=True)
+    fig.suptitle(title, **title_kwargs)
+    
+    colors = plt.cm.jet(np.linspace(0,1,len(WINDOWS_MIN)))
+    lw = {"EXPE": 0.8, "SONIC": 0.4}
+    
+    # plot detrended signal
+    ax[0].plot(x, detrend_signal(y), label="Detrended signal", color="grey", lw=lw[device])
+    
+    # plot rolling mean and deviation
+    win_lens = [i*60*SAMPLE_RATE[device] for i in WINDOWS_MIN]
+    for i, win_len in enumerate(win_lens):
+        y_roll = roll_mean(detrend_signal(y), win_len)
+        y_dev = y - y_roll
+        ax[1].plot(x, y_roll, label=f"Mean {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
+        ax[2].plot(x, y_dev, label=f"Turbulence {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
+    
+    for i in range(len(ax)):
+        # plot legend on right side of subplots
+        ax[i].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax[i].grid(True)
+        ax[i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
+        
+    plt.tight_layout()
+    
+    plt.savefig(f"plots/averaging/{fn}.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 def plot_win():
     """Plots the nonparametric window functions."""
@@ -159,13 +187,13 @@ def plot_win():
     plt.savefig("plots/sensitivity_wf/window_functions.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_win_influence(x: np.ndarray, y: np.ndarray, subtitle: str, fn: str) -> None:
+def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> None:
     """Plots the influence of different window functions on the spectrum."""
     
     fig, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
                            sharex=True, sharey=True)
     
-    fig.suptitle(subtitle, **title_kwargs)
+    fig.suptitle(title, **title_kwargs)
     
     for i, wf in enumerate(window_functions):
         freq, spec = calc_spectrum(x, taper_signal(detrend_signal(y), 0.1, func=wf))
