@@ -4,10 +4,11 @@ warnings.filterwarnings("ignore")
 
 from setup import KERNEL_SIZE, TAPERING_SIZE, SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import parse_data, get_var
-from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean
+from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean, \
+    calc_turb_int
 
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
-    plot_win_influence, plot_avg, plot_temporal_coverage
+    plot_win_influence, plot_avg, plot_temporal_coverage, plot_turbulent_intensity
 
 
 # -----------------------------------------------------------------------------
@@ -20,7 +21,7 @@ for period in all_puos:
     for device in ["SONIC", "EXPE"]:
         
         data = parse_data(device, period)
-        
+        print(f"\t{period} {device}")        
         match device:
             case "EXPE":
                 
@@ -56,7 +57,11 @@ for period in all_puos:
                 spectrum_data["p_spec_smooth"] = roll_mean(spectrum_data["p_spec"], win_len=KERNEL_SIZE)
                 pd.DataFrame.from_dict(spectrum_data).to_csv(
                         f"data/spectra_data/{period}_{device}_spectrum_data.csv", index=False)
-
+                
+                # calculate turbulence intensity
+                for var in ["t", "rh", "p"]:
+                    print(f"\t\tTurbulent intensity of {var}: {calc_turb_int(y=timeseries_data[var])}")
+            
             case "SONIC":
 
                 # load data
@@ -152,5 +157,8 @@ plot_spectrum_comp("SONIC")
 
 print("Plotting window functions...")
 plot_win()
+
+print("Plotting turbulent intensity...")
+plot_turbulent_intensity()
 
 print("Done.")

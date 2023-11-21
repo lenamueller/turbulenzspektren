@@ -115,3 +115,10 @@ def min_max_norm(y: np.ndarray) -> np.ndarray:
     """Normalize the data to the range [0, 1]."""
     y_norm = (y - np.min(y)) / (np.max(y) - np.min(y))
     return y_norm
+
+def calc_turb_int(
+        y: np.ndarray
+        ) -> float:
+    """Calculate the turbulence intensity of the signal."""
+    ti: float = np.std(y) / np.mean(y)
+    return ti

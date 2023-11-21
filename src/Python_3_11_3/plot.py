@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from parse import get_var
-from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, calc_turb_int
 from setup import all_puos, variables, metadata, window_functions, unique_dates
 from setup import WINDOWS_MIN, SAMPLE_RATE
 
@@ -323,4 +323,30 @@ def plot_temporal_coverage():
     plt.tight_layout()
     plt.savefig("plots/temporal_coverage/temporal_coverage.png", 
                 dpi=600, bbox_inches='tight')
+    plt.close()
+
+def plot_turbulent_intensity():
+    """Plot a box plot of turbulence intensity for all variables."""
+    
+    results = {"t_expe": [], "rh": [], "p": [], "t_sonic": [], 
+               "wind3d": [], "wind2d": []}
+
+    for period in all_puos:
+        results["t_expe"].append(calc_turb_int(y=get_var("EXPE", period, "t")))
+        results["rh"].append(calc_turb_int(y=get_var("EXPE", period, "rh")))
+        results["p"].append(calc_turb_int(y=get_var("EXPE", period, "p")))
+        results["t_sonic"].append(calc_turb_int(y=get_var("SONIC", period, "t")))
+        results["wind3d"].append(calc_turb_int(y=get_var("SONIC", period, "wind3d")))
+        results["wind2d"].append(calc_turb_int(y=get_var("SONIC", period, "wind2d")))
         
+    _, ax = plt.subplots(figsize=(10, 7))
+    ax.boxplot(results.values())
+    labels = ["Temperature (EXPE)", "Rel. humidity (EXPE)", "Pressure (EXPE)",
+              "Temperature (SONIC)", "3D Wind (SONIC)", "2D Wind (SONIC)"]
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Turbulent intensity [-]")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("plots/turbulent_intensity.png", 
+                dpi=600, bbox_inches='tight')
+    plt.close()
