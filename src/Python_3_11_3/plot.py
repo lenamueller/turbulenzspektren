@@ -139,13 +139,14 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
     lw = {"EXPE": 0.8, "SONIC": 0.4}
     
     # plot detrended signal
-    ax[0].plot(x, detrend_signal(y), label="Detrended signal", color="grey", lw=lw[device])
+    y_det = detrend_signal(y)
+    ax[0].plot(x, y_det, label="Detrended signal", color="grey", lw=lw[device])
     
     # plot rolling mean and deviation
     win_lens = [i*60*SAMPLE_RATE[device] for i in WINDOWS_MIN]
     for i, win_len in enumerate(win_lens):
-        y_roll = roll_mean(detrend_signal(y), win_len)
-        y_dev = y - y_roll
+        y_roll = roll_mean(y_det, win_len)
+        y_dev = y_det - y_roll
         ax[1].plot(x, y_roll, label=f"Mean {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
         ax[2].plot(x, y_dev, label=f"Turbulence {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
     
