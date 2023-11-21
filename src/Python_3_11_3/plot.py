@@ -103,14 +103,13 @@ def plot_spectrum_comp(device: str) -> None:
             ax[i // 4, i % 4].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
                                      color="grey")
             ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                  lw=0.3, label=labels[var], c="r")
+                                  lw=0.3, c="r")
             ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
                                      **range_kw_args)
             
             # plot setup
             _, _, start_datetime, end_datetime, date, _ = metadata(puo)
-            ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - \
-                {end_datetime[10:-3]}", **title_kwargs)
+            ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
             ax[0, 0].legend(loc='upper left')
             ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
             ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
