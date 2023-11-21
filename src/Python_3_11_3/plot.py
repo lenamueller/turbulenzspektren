@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
-from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, sample_freq
-from setup import all_puos, variables, metadata, window_functions
+from parse import get_var
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
+from setup import all_puos, variables, metadata, window_functions, unique_dates
 from setup import WINDOWS_MIN, SAMPLE_RATE
 
 
@@ -211,4 +212,74 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
 
 def plot_temporal_coverage():
     """Plots the temporal coverage of the experiments."""
-    pass
+    
+    _, ax = plt.subplots(nrows=len(unique_dates), ncols=1, figsize=(15,20))
+        
+    for i in range(len(unique_dates)):
+        
+        # get data
+        period = f"Day{i+1}"
+        expe_dt = get_var("EXPE", period, "Datetime")
+        expe_t = get_var("EXPE", period, "t")
+        sonic_dt = get_var("SONIC", period, "Datetime")
+        sonic_t = get_var("SONIC", period, "t")
+        sonic_3dwind = get_var("SONIC", period, "wind3d")
+                
+        ax2 = ax[i].twinx() # secondary y-axis for wind speed
+        
+        lns = [] # legend entries
+
+        # plot data
+        lns1 = ax[i].plot(
+            sonic_dt, sonic_t, label="SONIC Temp.", 
+            lw=0.5, ls = "solid", alpha=0.5, c="darkblue")
+        lns2 = ax[i].plot(
+            expe_dt, expe_t, label="EXPE Temp.", 
+            lw=1, ls="-.", alpha=0.5, c="darkblue")
+        lns3 = ax2.plot(
+            sonic_dt, sonic_3dwind, lw=0.2, alpha=0.5, 
+            c="r", label="SONIC wind speed")
+    
+        # highlight puos
+        ranges = []
+        for puo in all_puos:
+            _, _, start_date, end_date, _, day = metadata(puo)
+            start = pd.to_datetime(start_date, format="%Y-%m-%d %H:%M:%S")
+            end = pd.to_datetime(end_date, format="%Y-%m-%d %H:%M:%S")
+            ranges.append((day-1, start, end))
+            
+        for j in range(len(ranges)): 
+            ax_i, start, end = ranges[j]
+            if ax_i == i:
+                hours = round((end-start).total_seconds()/(60*60), 1)
+                ln_polygon = ax[i].axvspan(ranges[j][1], ranges[j][2], alpha=0.1, 
+                                            color='gold', label=f"PUO {j+1}: {hours} h")
+                lns += [ln_polygon]
+        
+        # plot config
+        ax[i].set_title(f"{unique_dates[i]}", fontweight='bold', color="k", fontsize=14)
+        ax[0].text(0,1.05,"PUO = Period under observation", transform=ax[0].transAxes, 
+                    color="grey")
+        ax[i].set_ylabel("Temperature [°C]", color="darkblue")
+        ax[i].set_xlabel("Time [UTC]")
+        ax2.set_ylabel("Wind speed [m/s]", color="r")
+        ax[i].set_ylim((10,45))
+        ax2.set_ylim((0, 10))
+        ax[i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
+        ax[i].grid(True)
+
+        date = unique_dates[i]
+        da, mo, ye = date.split(".")
+        ax[i].set_xlim((
+                pd.Timestamp(int(ye), int(mo), int(da), 5, 0), 
+                pd.Timestamp(int(ye), int(mo), int(da), 17, 0)
+                ))
+        
+        lns += lns1+lns2+lns3
+        labs = [l.get_label() for l in lns]
+        ax[i].legend(lns, labs, loc="upper left")
+        
+    plt.tight_layout()
+    plt.savefig("plots/temporal_coverage/temporal_coverage.png", 
+                dpi=600, bbox_inches='tight')
+        

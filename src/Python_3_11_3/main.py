@@ -1,20 +1,12 @@
-""" 
-File: main.py
-Author: Lena Müller
-Date: November 20, 2023
-
-Description: Main file for running the analysis.
-"""
-
 import pandas as pd
-pd.set_option("mode.chained_assignment", None)
 import warnings
 warnings.filterwarnings("ignore")
 
-from setup import KERNEL_SIZE, TAPERING_SIZE, SAMPLE_RATE, variables, labels, metadata, all_puos
+from setup import KERNEL_SIZE, TAPERING_SIZE, SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import parse_data, get_var
 from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win, plot_win_influence, plot_avg
+from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win, plot_win_influence, \
+    plot_avg, plot_temporal_coverage
 
 
 # -----------------------------------------------------------------------------
@@ -103,9 +95,12 @@ for period in all_puos:
 # plotting
 # -----------------------------------------------------------------------------
 
+print("\tPlotting temporal coverage...")
+plot_temporal_coverage()
+
 for period in all_puos:
     for device in ["EXPE", "SONIC"]:
-        print("Plotting - ", period, device)
+        print("Run plotting - ", period, device)
         
         expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
 
