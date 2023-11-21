@@ -5,8 +5,9 @@ warnings.filterwarnings("ignore")
 from setup import KERNEL_SIZE, TAPERING_SIZE, SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import parse_data, get_var
 from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_win, plot_win_influence, \
-    plot_avg, plot_temporal_coverage
+
+from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
+    plot_win_influence, plot_avg, plot_temporal_coverage
 
 
 # -----------------------------------------------------------------------------
@@ -144,8 +145,8 @@ for period in all_puos:
                 fn=f"wf_{period}_{device}_{var}"
             )
 
-
 print("Plotting spectra comparison...")
+plot_t_spectrum_comp()
 plot_spectrum_comp("EXPE")
 plot_spectrum_comp("SONIC")
 

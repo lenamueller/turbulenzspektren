@@ -104,7 +104,7 @@ def plot_spectrum_comp(device: str) -> None:
             ax[i // 4, i % 4].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
                                      color="grey")
             ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                  lw=0.3, c="r")
+                                  lw=0.5, c="r")
             ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
                                      **range_kw_args)
             
@@ -128,7 +128,47 @@ def plot_spectrum_comp(device: str) -> None:
         plt.tight_layout()
         plt.savefig(f"plots/spectra/spectra_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
         plt.close()
+
+def plot_t_spectrum_comp() -> None:
+    """Plots a comparison of all smoothed spectra for both devices."""
+    
+    var = "t_spec"
+    fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
+    fig.suptitle("Temperature [°C]\n", **title_kwargs)
+
+    for i, puo in enumerate(all_puos):
         
+        ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
+                                    **range_kw_args)
+        
+        for device in ["EXPE", "SONIC"]:
+            df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
+            if device == "EXPE":
+                ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                                lw=0.5, c="b", label="EXPE (1 Hz)")
+            else:
+                ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                                lw=0.5, c="g", label="SONIC (2 Hz)")
+            
+        _, _, start_datetime, end_datetime, date, _ = metadata(puo)
+        ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
+        ax[0, 0].legend(loc='upper right')
+        ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
+        ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
+        ax[i // 4, i % 4].set_xscale("log")
+        ax[i // 4, i % 4].set_xlabel("Frequency [Hz]")
+        ax[i // 4, 0].set_ylabel("Spectral density [(unit)²/Hz]")
+        ax[2, 3].set_visible(False)
+        ax[i // 4, i % 4].grid()
+            
+        ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
+        ax2.set_xticks([10000, 1000, 100, 10])
+        ax2.set_xlabel("Period [s]")
+            
+    plt.tight_layout()
+    plt.savefig(f"plots/spectra/spectra_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
     """Plots the average of a time series."""
 
