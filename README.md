@@ -1,18 +1,39 @@
 Made as part of the course "MHYD11 Vertiefungspraxis Meteorologie" at TU Dresden.
 
+# Measuring devices
+1. Sonic Anemometer:
+    - time: UTC+1, without daylight saving time
+    - variables: 3D wind speed, temperature
+    - filename format: `TOA5_*.Raw_YYYY_MM_DD_*.dat`
+2. Expe module:
+    - time: UTC
+    - variables: temperature, relative humidity, pressure
+    - filename format: `YYYYMMDD-HHMM-Log.txt`
+
+
+## Usage
+1. Clone the repository
+```bash
+git clone git@github.com:lenamueller/turbulenzspektren.git
+```
+2. Install the required python packages
+```bash
+pip install -r requirements.txt
+```
+3. Run the analysis script
+```bash
+python src/Python_3_11_3/main.py
+```
+
 # Content
 ## `data/`
-`YYYY_MM_DD/` contains the raw data sorted by measuring date
+`raw_data/YYYY_MM_DD/` contains the raw data by measuring date
 
 `spectra_data/` contains the spectra data
 
 `timeseries_data/` contains the time series data (raw, detrended, tapered)
 
-## `plots/`
-contains the plots created with `plot.py`
-
 ## `src/Python_3_11_3`
-contains the Python source code
 
 ### `main.py`
 
@@ -45,31 +66,46 @@ Temperature, relative Humidity and Pressure. Sonic variables are Datetime,
 - ``plot_temporal_coverage(todo)`` plots the temporal coverage of the experiments
 
 
-### `setup.py`
+### `setup.py` contains the setup of the analysis
 
-## Usage
-1. Clone the repository
-```bash
-git clone git@github.com:lenamueller/turbulenzspektren.git
-```
-2. Install the required python packages
-```bash
-pip install -r requirements.txt
-```
-3. Run the analysis script
-```bash
-python src/Python_3_11_3/main.py
-```
 
-## Measuring devices
-1. Sonic Anemometer:
-    - time: UTC+1, without daylight saving time
-    - variables: 3D wind speed, temperature
-    - filename format: `TOA5_*.Raw_YYYY_MM_DD_*.dat`
-2. Expe module:
-    - time: UTC
-    - variables: temperature, relative humidity, pressure
-    - filename format: `YYYYMMDD-HHMM-Log.txt`
+## `plots/`
+contains the plots created with `plot.py`
 
-## Temporary coverage of the data
-![temporal_coverage.png](plots/temporal_coverage/temporal_coverage.png)
+### Examples:
+
+#### `plots/preprocessing/`
+This plot shows the raw signal (top), the detrended signal (middle) and the tapered signal (bottom, default tapering function is cosine) of the temperature time series of the EXPE device on 11.08.2023 morning.
+
+<img src="plots/preprocessing/preprocess_PUO_05_EXPE_t.png" alt="plots/preprocessing/preprocess_PUO_05_EXPE_t.png" width="600"/>   
+
+
+#### `plots/averaging/`
+This plot shows the detrended signal (top), the rolling mean with different window sizes (middle) and the resulting fluctuations (bottom) of the temperature time series of the EXPE device on 11.08.2023 morning.
+
+<img src="plots/averaging/avg_PUO_05_EXPE_t.png" alt="plots/averaging/avg_PUO_05_EXPE_t.png" width="600"/>
+
+#### `plots/spectra/`
+This plot shows the tapered signal (top) and the spectrum (middle, grey: calculated, red: smoothed with rolling mean) of the temperature time series of the EXPE device on 11.08.2023 morning. The highlighted area shows the period range from 30 to 60 minutes, where a spectral gap is expected for meteoroogical data.
+
+<img src="plots/spectra/spec_PUO_05_EXPE_t.png" alt="plots/spectra/spec_PUO_05_EXPE_t.png" width="600"/>
+
+This plot shows the comparison of all spectra of the periods under investigation of the temperature time series of the EXPE device.
+
+<img src="plots/spectra/spectra_comparison_EXPE_t_spec.png" alt="plots/spectra/spectra_comparison_EXPE_t_spec.png" width="800"/>
+
+#### `plots/sensitivity_wf`
+This plot shows the non-parametric window functions.
+The blue function shows the window function only applied to the first and last 10 % of the data. boxcar function is a rectangular window (equivalient to no window at all).
+
+<img src="plots/sensitivity_wf/window_functions.png" alt="windpw_functions.png" width="600"/>
+
+This plot shows the (relatively small) influence of the window functions on the spectrum of the temperature time series of the EXPE device on 11.08.2023 morning.
+
+<img src="plots/sensitivity_wf/wf_PUO_05_EXPE_t.png" alt="wf_PUO_05_EXPE_t.png" width="600"/>
+
+
+#### `plots/temporal_coverage/`
+This plot shows the temporal coverage of the experiments. The highlighted area shows the periods under investigation, which are free from measurement errors and both EXPE and SONIC data are available.
+
+<img src="plots/temporal_coverage/temporal_coverage.png" alt="plots/temporal_coverage/temporal_coverage.png" width="800"/>
