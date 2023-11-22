@@ -97,6 +97,39 @@ for period in all_puos:
                 pd.DataFrame.from_dict(spectrum_data).to_csv(
                         f"data/spectra_data/{period}_{device}_spectrum_data.csv", index=False)
 
+
+for period in all_puos:
+    comparison = pd.DataFrame()    
+    
+    # EXPE
+    data = parse_data("EXPE", period)
+    dt = data["Datetime"].to_numpy()
+    t = data["t"].to_numpy()
+    rh = data["rh"].to_numpy()
+    p = data["p"].to_numpy()
+    
+    comparison["frequencies"] = calc_spectrum(dt, taper_signal(detrend_signal(t), perc=0.1))[0]
+    n_expe = len(comparison)
+    
+    comparison["EXPE_t"] = calc_spectrum(dt, taper_signal(detrend_signal(t), perc=0.1))[1]
+    comparison["EXPE_rh"] = calc_spectrum(dt, taper_signal(detrend_signal(rh), perc=0.1))[1]
+    comparison["EXPE_p"] = calc_spectrum(dt, taper_signal(detrend_signal(p), perc=0.1))[1]
+    
+    # SONIC
+    data = parse_data("SONIC", period)
+    
+    dt = data["Datetime"].to_numpy()
+    t = data["t"].to_numpy()
+    wind3d = data["wind3d"].to_numpy()
+    wind2d = data["wind2d"].to_numpy()
+    
+    comparison["SONIC_t"] = calc_spectrum(dt, taper_signal(detrend_signal(t), perc=0.1))[1][:n_expe]
+    comparison["SONIC_wind3d"] = calc_spectrum(dt, taper_signal(detrend_signal(wind3d), perc=0.1))[1][:n_expe]
+    comparison["SONIC_wind2d"] = calc_spectrum(dt, taper_signal(detrend_signal(wind2d), perc=0.1))[1][:n_expe]
+        
+    # save to csv
+    comparison.to_csv(f"data/spectra_data/comparison_{period}.csv", index=False)
+        
 # -----------------------------------------------------------------------------
 # plotting
 # -----------------------------------------------------------------------------
