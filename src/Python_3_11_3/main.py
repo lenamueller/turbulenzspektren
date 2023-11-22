@@ -8,7 +8,7 @@ from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, ro
     calc_turb_int
 
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
-    plot_win_influence, plot_avg, plot_temporal_coverage, plot_turbulent_intensity
+    plot_win_influence, plot_avg, plot_temporal_coverage, plot_turbulent_intensity, plot_patterns
 
 
 # -----------------------------------------------------------------------------
@@ -101,10 +101,9 @@ for period in all_puos:
 # plotting
 # -----------------------------------------------------------------------------
 
-print("\tPlotting temporal coverage...")
-plot_temporal_coverage()
-
 for period in all_puos:
+    plot_patterns(period)
+    
     for device in ["EXPE", "SONIC"]:
         print("Run plotting - ", period, device)
         

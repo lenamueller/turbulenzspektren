@@ -350,3 +350,61 @@ def plot_turbulent_intensity():
     plt.savefig("plots/turbulent_intensity.png", 
                 dpi=600, bbox_inches='tight')
     plt.close()
+
+def plot_patterns(puo):
+    """Plot all spectra for a single period under observation."""
+    
+    _, ax = plt.subplots(1, 1, figsize=(10, 7))
+    
+    # norm spectra
+    df = pd.read_csv(f"data/spectra_data/comparison_{puo}.csv")
+    df = (df-df.min())/(df.max()-df.min())
+    
+    # calculate mean column
+    df["mean"] = df.mean(axis=1)
+    df["std"] = df.std(axis=1)
+    
+    # del first row for better plotting
+    df = df.iloc[1:, :]
+    
+    # plot spectra
+    x = df["frequencies"]
+    plt.plot(x, roll_mean(df["EXPE_t"], win_len=10), label="EXPE: T", 
+             lw=1.0, ls="solid", c="red", alpha=0.4)
+    plt.plot(x, roll_mean(df["EXPE_rh"], win_len=10), label="EXPE: rH", 
+             lw=1.0, ls="solid", c="g", alpha=0.4)
+    plt.plot(x, roll_mean(df["EXPE_p"], win_len=10), label="EXPE: p", 
+             lw=1.0, ls="solid", c="b", alpha=0.4)
+    plt.plot(x, roll_mean(df["SONIC_t"], win_len=10), label="SONIC: T", 
+             lw=1.0, ls="--", c="r", alpha=0.4)
+    plt.plot(x, roll_mean(df["SONIC_wind2d"], win_len=10), label="SONIC: 2D wind", 
+             lw=1.0, ls="--", c="purple", alpha=0.4)
+    plt.plot(x, roll_mean(df["SONIC_wind3d"], win_len=10), label="SONIC: 3D wind", 
+             lw=1.0, ls="--", c="brown", alpha=0.4)
+    
+    # plot mean and confidence interval
+    plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mean",
+                lw=1.0, ls="solid", c="k")
+    plt.fill_between(x, roll_mean(df["mean"]-0.5*df["std"], win_len=10),
+                        roll_mean(df["mean"]+0.5*df["std"], win_len=10),
+                        color="grey", alpha=0.3, label="Confidence interval (0.5*Std)")
+    
+    # 30 to 60 min range
+    plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
+    
+    # plot setup
+    plt.ylim(bottom=-0.1)
+    plt.ylabel("Normalized spectral Energy Density * Frequency")
+    plt.xlabel("Frequency [Hz]")
+    plt.xscale("log")
+    plt.xlim((1e-4, 1e0))
+    plt.xticks([1e-4, 1e-3, 1e-2, 1e-1, 1e0])
+    plt.legend()
+    plt.grid()
+    ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
+    ax2.set_xticks([10000, 1000, 100, 10, 1])
+    ax2.set_xlabel("Period [s]")
+    plt.savefig(f"plots/spectra/patterns_{puo}.png", bbox_inches="tight", dpi=300)
+    plt.close()
+    
+
