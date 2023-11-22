@@ -19,9 +19,9 @@ print("Run calculations...")
 
 for period in all_puos:
     for device in ["SONIC", "EXPE"]:
-        
+        print(period, device)
         data = parse_data(device, period)
-        print(f"\t{period} {device}")        
+        
         match device:
             case "EXPE":
                 
@@ -97,7 +97,10 @@ for period in all_puos:
                 pd.DataFrame.from_dict(spectrum_data).to_csv(
                         f"data/spectra_data/{period}_{device}_spectrum_data.csv", index=False)
 
-
+                # calculate turbulence intensity
+                for var in ["t", "wind3d", "wind2d"]:
+                    print(f"\t\tTurbulent intensity of {var}: {calc_turb_int(y=timeseries_data[var])}")
+                    
 for period in all_puos:
     comparison = pd.DataFrame()    
     
@@ -135,10 +138,11 @@ for period in all_puos:
 # -----------------------------------------------------------------------------
 
 for period in all_puos:
-    plot_patterns(period)
+    
+    
     
     for device in ["EXPE", "SONIC"]:
-        print("Run plotting - ", period, device)
+        print("Run plotting - ", period, "&", device)
         
         expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
 
@@ -181,6 +185,13 @@ for period in all_puos:
                 title=suptitle_info,
                 fn=f"wf_{period}_{device}_{var}"
             )
+
+print("Plotting patterns...")
+for period in all_puos:
+    plot_patterns(period)
+    
+print("\tPlotting temporal coverage...")
+plot_temporal_coverage()
 
 print("Plotting spectra comparison...")
 plot_t_spectrum_comp()
