@@ -367,20 +367,24 @@ def plot_patterns(puo):
     # del first row for better plotting
     df = df.iloc[1:, :]
     
+    # reduce spectra to first 300 rows
+    first_n = 300
+    df = df.iloc[:first_n, :]
+    
     # plot spectra
     x = df["frequencies"]
     plt.plot(x, roll_mean(df["EXPE_t"], win_len=10), label="EXPE: T", 
-             lw=1.0, ls="solid", c="red", alpha=0.4)
+             lw=1.0, ls="solid", c="red", alpha=0.7)
     plt.plot(x, roll_mean(df["EXPE_rh"], win_len=10), label="EXPE: rH", 
-             lw=1.0, ls="solid", c="g", alpha=0.4)
+             lw=1.0, ls="solid", c="c", alpha=0.7)
     plt.plot(x, roll_mean(df["EXPE_p"], win_len=10), label="EXPE: p", 
-             lw=1.0, ls="solid", c="b", alpha=0.4)
+             lw=1.0, ls="solid", c="b", alpha=0.7)
     plt.plot(x, roll_mean(df["SONIC_t"], win_len=10), label="SONIC: T", 
-             lw=1.0, ls="--", c="r", alpha=0.4)
+             lw=1.0, ls="--", c="r", alpha=0.7)
     plt.plot(x, roll_mean(df["SONIC_wind2d"], win_len=10), label="SONIC: 2D wind", 
-             lw=1.0, ls="--", c="purple", alpha=0.4)
+             lw=1.0, ls="--", c="limegreen", alpha=0.7)
     plt.plot(x, roll_mean(df["SONIC_wind3d"], win_len=10), label="SONIC: 3D wind", 
-             lw=1.0, ls="--", c="brown", alpha=0.4)
+             lw=1.0, ls="--", c="darkgreen", alpha=0.7)
     
     # plot mean and confidence interval
     plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mean",
@@ -393,16 +397,18 @@ def plot_patterns(puo):
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
     
     # plot setup
+    _, _, start_datetime, end_datetime, date, _ = metadata(puo)
+    plt.title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
     plt.ylim(bottom=-0.1)
     plt.ylabel("Normalized spectral Energy Density * Frequency")
     plt.xlabel("Frequency [Hz]")
     plt.xscale("log")
-    plt.xlim((1e-4, 1e0))
-    plt.xticks([1e-4, 1e-3, 1e-2, 1e-1, 1e0])
+    plt.xlim((1e-4, 1e-1))
+    plt.xticks([1e-4, 1e-3, 1e-2, 1e-1])
     plt.legend()
     plt.grid()
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
-    ax2.set_xticks([10000, 1000, 100, 10, 1])
+    ax2.set_xticks([10000, 1000, 100, 10])
     ax2.set_xlabel("Period [s]")
     plt.savefig(f"plots/spectra/patterns_{puo}.png", bbox_inches="tight", dpi=300)
     plt.close()
