@@ -81,14 +81,6 @@ def calc_spectrum(x: np.ndarray, y: np.ndarray
     
     return freq, spectrum
 
-def smooth(x: np.ndarray, y: np.ndarray, win_len: int
-           ) -> tuple[np.ndarray, np.ndarray]:
-    """Smooth the time series data (x, y) using discrete, linear convolution."""
-    kernel = np.ones(win_len) / win_len
-    y_smo = np.convolve(y, kernel, mode='valid')
-    xs = x[win_len//2:-win_len//2+1]
-    return xs, y_smo
-
 def roll_mean(y: np.ndarray, win_len: int
               ) -> np.ndarray:
     """Calculate the rolling mean of the time series (x, y) 
