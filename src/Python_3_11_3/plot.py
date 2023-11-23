@@ -126,7 +126,7 @@ def plot_spectrum_comp(device: str) -> None:
             
             
         plt.tight_layout()
-        plt.savefig(f"plots/spectra/spectra_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
+        plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
         plt.close()
 
 def plot_t_spectrum_comp() -> None:
@@ -166,7 +166,7 @@ def plot_t_spectrum_comp() -> None:
         ax2.set_xlabel("Period [s]")
             
     plt.tight_layout()
-    plt.savefig(f"plots/spectra/spectra_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
     plt.close()
 
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
@@ -347,7 +347,7 @@ def plot_turbulent_intensity():
     ax.set_ylabel("Turbulent intensity [-]")
     plt.grid()
     plt.tight_layout()
-    plt.savefig("plots/turbulent_intensity.png", 
+    plt.savefig("plots/other/turbulent_intensity.png", 
                 dpi=600, bbox_inches='tight')
     plt.close()
 
@@ -410,7 +410,7 @@ def plot_patterns(puo):
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
     ax2.set_xlabel("Period [s]")
-    plt.savefig(f"plots/spectra/patterns_{puo}.png", bbox_inches="tight", dpi=300)
+    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{puo}.png", bbox_inches="tight", dpi=300)
     plt.close()
     
 
