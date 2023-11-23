@@ -67,9 +67,15 @@ This plot shows the tapered signal (top) and the spectrum (middle, grey: calcula
 
 <img src="plots/spectra/spec_PUO_05_EXPE_t.png" alt="plots/spectra/spec_PUO_05_EXPE_t.png" width="600"/>
 
+#### `plots/spectra_comparison/`
+
 This plot shows the comparison of all spectra of the periods under investigation of the temperature time series of the EXPE device.
 
-<img src="plots/spectra/spectra_comparison_EXPE_t_spec.png" alt="plots/spectra/spectra_comparison_EXPE_t_spec.png" width="800"/>
+<img src="plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png" alt="spectra_temporal_comparison_EXPE_SONIC_t.png" width="800"/>
+
+This plot compares the normalized spectra of different variables for the period under investigation.
+
+<img src="plots/spectra_comparison/spectra_variable_comparison_PUO_05.png" alt="" width=600>
 
 #### `plots/sensitivity_wf`
 This plot shows the non-parametric window functions.
