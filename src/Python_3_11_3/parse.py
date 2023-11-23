@@ -24,8 +24,7 @@ def get_var(
         ) -> np.ndarray:
     """Return a variable for certain period and measuring device as array."""
     df = parse_data(device, period)
-    arr = df[var].to_numpy()
-    return arr
+    return df[var].to_numpy()
 
 def _parse_expe(expe_fn: str, start_datetime: str, end_datetime: str) -> pd.DataFrame:
     """Parse the data from the csv-file using sensor 0."""

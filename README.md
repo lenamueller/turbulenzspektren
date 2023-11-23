@@ -26,13 +26,14 @@ python src/Python_3_11_3/main.py
 
 ``src/Python_3_11_3/``
 - `main.py` runs the analysis
+- `setup.py` contains the setup of the analysis (paths, global variables etc.)
 - `parse.py` parses the raw data
     - ``data = parse_data(device, period)`` parses the raw data from two devices
     ("EXPE" or "SONIC") and a given time period. Expe variables are Datetime, 
     Temperature, relative Humidity and Pressure. Sonic variables are Datetime, 
     2D Wind, 3D Wind and Temerature.
-    - ``arr = get_var(device, period, var)`` returns the variable of a given device and time period
-- `process.py` processes the data
+    - ``data = get_var(device, period, var)`` returns the variable of a given device and time period
+- `process.py` <mark> processes the data </mark>
     - ``n = sample_size(x)`` calculates the sample size of the data
     - ``sr = sample_rate(x)`` calculates the sample rate of the data
     - ``freq = sample_freq(x)`` calculates the sample frequencies of the data
@@ -44,14 +45,7 @@ python src/Python_3_11_3/main.py
     - ``x, y_mean = step_mean(y, win_len)`` calculates the step mean of the spectrum
     - ``y_norm = min_max_norm(y)`` calculates the min-max-normalization of the data
 - `plot.py` plots the data
-    - ``plot_ts(x, y, fn, title)`` plots the processing steps of the time series
-    - ``plot_spectrum(x, y, fn, ylabel, title)`` plots the spectrum (with smoothing) of a time series
-    - ``plot_spectrum_comp(device)`` plots a comparison of all smoothed spectra
-    - ``plot_avg(x, y, device, suptitle, fn)`` plots the average of a time series
-    - ``plot_win()`` plots the nonparametric window functions
-    - ``plot_win_influcence(x, y, subtitle, fn)`` plots the influence of the window function
-    - ``plot_temporal_coverage()`` plots the temporal coverage of the experiments
-- `setup.py` contains the setup of the analysis (paths, global variables etc.)
+
 
 `plots/` contains the plots created with `plot.py`
 
