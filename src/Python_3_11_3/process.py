@@ -111,11 +111,6 @@ def step_mean(y: np.ndarray, win_len: int
         y_mean.extend(new_values)
     return y_mean
 
-def min_max_norm(y: np.ndarray) -> np.ndarray:
-    """Normalize the data to the range [0, 1]."""
-    y_norm = (y - np.min(y)) / (np.max(y) - np.min(y))
-    return y_norm
-
 def calc_turb_int(
         y: np.ndarray
         ) -> float:
