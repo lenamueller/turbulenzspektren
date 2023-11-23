@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
@@ -169,7 +170,7 @@ def plot_t_spectrum_comp() -> None:
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
+def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> None:
     """Plots the average of a time series."""
 
     fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10,7), sharex=True)
@@ -201,7 +202,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str):
     plt.savefig(f"plots/averaging/{fn}.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_win():
+def plot_win() -> None:
     """Plots the nonparametric window functions."""
     
     _, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
@@ -251,7 +252,7 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
     plt.savefig(f"plots/sensitivity_wf/{fn}.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_temporal_coverage():
+def plot_temporal_coverage() -> None:
     """Plots the temporal coverage of the experiments."""
     
     _, ax = plt.subplots(nrows=len(unique_dates), ncols=1, figsize=(15,20))
@@ -325,7 +326,7 @@ def plot_temporal_coverage():
                 dpi=600, bbox_inches='tight')
     plt.close()
 
-def plot_turbulent_intensity():
+def plot_turbulent_intensity() -> None:
     """Plot a box plot of turbulence intensity for all variables."""
     
     results = {"t_expe": [], "rh": [], "p": [], "t_sonic": [], 
@@ -351,7 +352,7 @@ def plot_turbulent_intensity():
                 dpi=600, bbox_inches='tight')
     plt.close()
 
-def plot_patterns(puo):
+def plot_patterns(period: str) -> None:
     """Plot all spectra for a single period under observation."""
     
     _, ax = plt.subplots(1, 1, figsize=(10, 7))
@@ -397,7 +398,7 @@ def plot_patterns(puo):
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
     
     # plot setup
-    _, _, start_datetime, end_datetime, date, _ = metadata(puo)
+    _, _, start_datetime, end_datetime, date, _ = metadata(period)
     plt.title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
     plt.ylim(bottom=-0.1)
     plt.ylabel("Normalized spectral Energy Density * Frequency")
@@ -410,7 +411,62 @@ def plot_patterns(puo):
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
     ax2.set_xlabel("Period [s]")
-    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{puo}.png", bbox_inches="tight", dpi=300)
+    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{period}.png", bbox_inches="tight", dpi=300)
     plt.close()
     
+def plot_corr():
+    
+    corr_dfs = []
+    
+    for period in all_puos:
+        df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+        
+        # reduce spectra to first 300 rows
+        first_n = 300
+        df = df.iloc[:first_n, :]
 
+        # apply roll_mean to each column
+        df = df.apply(roll_mean, win_len=10)
+
+        rename_dict = {
+            "EXPE_t": "EXPE: T",
+            "EXPE_rh": "EXPE: rH",
+            "EXPE_p": "EXPE: p",
+            "SONIC_t": "SONIC: T",
+            "SONIC_wind2d": "SONIC: 2D wind",
+            "SONIC_wind3d": "SONIC: 3D wind"
+            }
+        df = df.rename(columns=rename_dict)
+        df = df.iloc[:, 1:]
+        
+        # min max normalize
+        df = (df-df.min())/(df.max()-df.min())
+
+        # Computes feature correlation
+        corr_dfs.append(df.corr(method="pearson"))
+        
+        # calculate mean of allv alues in df
+        print(period, round(df.mean().mean(), 2))
+    
+    # calculate mean correlation 
+    df_corr = pd.concat(corr_dfs).groupby(level=0).mean()
+    df_corr = df_corr.reindex(index=df_corr.columns)
+    
+    labels = np.where(np.abs(df_corr)>0.75, "Strong",
+                  np.where(np.abs(df_corr)>0.5, "Medium",
+                           np.where(np.abs(df_corr)>0.25, "Weak", "")))
+    
+    # Plot correlation matrix
+    plt.figure(figsize=(15, 13))
+    sns.heatmap(df_corr, 
+                mask=np.eye(len(df_corr)), 
+                center=0, 
+                annot=True, fmt=".2f",
+                # annot=labels, fmt="",
+                linewidths=.5,
+                cmap="vlag", vmin=-1, vmax=1,
+                cbar_kws={"shrink": 0.8}
+                )
+    
+    plt.savefig(f"plots/other/correlation_mean.png", bbox_inches="tight", dpi=300)
+    plt.close()
