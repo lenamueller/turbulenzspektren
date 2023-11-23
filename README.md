@@ -49,6 +49,11 @@ python src/Python_3_11_3/main.py
 
 `plots/` contains the plots created with `plot.py`
 
+# Periods under observation
+This plot shows the temporal coverage of the experiments. The highlighted area shows the periods under investigation, which are free from measurement errors and both EXPE and SONIC data are available.
+
+<img src="plots/temporal_coverage/temporal_coverage.png" alt="plots/temporal_coverage/temporal_coverage.png" width="800"/>
+
 ## Example plots for measuring device EXPE and period under investigation 11.08.2023 morning (PUO_05)
 
 #### `plots/preprocessing/`
@@ -88,7 +93,3 @@ This plot shows the (relatively small) influence of the window functions on the 
 <img src="plots/sensitivity_wf/wf_PUO_05_EXPE_t.png" alt="wf_PUO_05_EXPE_t.png" width="600"/>
 
 
-#### `plots/temporal_coverage/`
-This plot shows the temporal coverage of the experiments. The highlighted area shows the periods under investigation, which are free from measurement errors and both EXPE and SONIC data are available.
-
-<img src="plots/temporal_coverage/temporal_coverage.png" alt="plots/temporal_coverage/temporal_coverage.png" width="800"/>
