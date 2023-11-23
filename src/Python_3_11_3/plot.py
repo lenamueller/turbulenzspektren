@@ -358,7 +358,7 @@ def plot_patterns(period: str) -> None:
     _, ax = plt.subplots(1, 1, figsize=(10, 7))
     
     # norm spectra
-    df = pd.read_csv(f"data/spectra_data/comparison_{puo}.csv")
+    df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
     df = (df-df.min())/(df.max()-df.min())
     
     # calculate mean column
@@ -458,6 +458,7 @@ def plot_corr():
     
     # Plot correlation matrix
     plt.figure(figsize=(15, 13))
+    plt.title("Mean correlation between variables", **title_kwargs)
     sns.heatmap(df_corr, 
                 mask=np.eye(len(df_corr)), 
                 center=0, 
