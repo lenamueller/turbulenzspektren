@@ -111,7 +111,7 @@ def plot_spectrum_comp(device: str) -> None:
             
             # plot setup
             _, _, start_datetime, end_datetime, date, _ = metadata(puo)
-            ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
+            ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
             ax[0, 0].legend(loc='upper left')
             ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
             ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
@@ -152,7 +152,7 @@ def plot_t_spectrum_comp() -> None:
                                 lw=0.5, c="g", label="SONIC (2 Hz)")
             
         _, _, start_datetime, end_datetime, date, _ = metadata(puo)
-        ax[i // 4, i % 4].set_title(f"{puo}:\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
+        ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
         ax[0, 0].legend(loc='upper right')
         ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
         ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
