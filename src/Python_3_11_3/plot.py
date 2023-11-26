@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from parse import get_var
-from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, calc_turb_int
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, \
+    turbulente_intensitaet
 from setup import all_puos, variables, metadata, window_functions, unique_dates
 from setup import WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
 
@@ -361,19 +362,18 @@ def plot_patterns(period: str) -> None:
     
     _, ax = plt.subplots(1, 1, figsize=(10, 7))
     
-    # norm spectra
+    # read spectra data
     df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+    
+    # norm spectra
     df = (df-df.min())/(df.max()-df.min())
     
-    # calculate mean column
+    # calculate mean and std
     df["mean"] = df.mean(axis=1)
     df["std"] = df.std(axis=1)
     
-    # del first row for better plotting
+    # reduce spectra to first n rows
     df = df.iloc[1:, :]
-    
-    # reduce spectra to first 300 rows
-    first_n = 300
     df = df.iloc[:first_n, :]
     
     # plot spectra
@@ -394,7 +394,7 @@ def plot_patterns(period: str) -> None:
                         roll_mean(df["mean"]+0.5*df["std"], win_len=10),
                         color="grey", alpha=0.3, label="Konfidenzinvervall (0.5*Std)")
     
-    # 30 to 60 min range
+    # plot 30 to 60 min range
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
     
     # plot setup
@@ -418,23 +418,26 @@ def plot_patterns(period: str) -> None:
     # correlation matrix
     _, ax = plt.subplots(1, 1, figsize=(7.5, 6))
     
+    # read spectra data
     df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
-    first_n = 300
-    df = df.iloc[:first_n, :]
-
-    # apply roll_mean to each column
-    df = df.apply(roll_mean, win_len=10)
-    rename_dict = {
-        "EXPE_t": "Temperatur\n(EXPE)",
-        "SONIC_t": "Temperatur\n(SONIC)",
-        "SONIC_wind_h": "Horizontalwind\n(SONIC)",
-        "SONIC_wind_z": "Vertikalwind\n(SONIC)"
-        }
-    df = df.rename(columns=rename_dict)
-    df = df.iloc[:, 1:]
+    
+    # norm spectra
     df = (df-df.min())/(df.max()-df.min())
+    
+    # reduce spectra to first n rows
+    df = df.iloc[:first_n, :]
+    df = df.iloc[:, 1:]
+    
+    # calculate rolling mean
+    df = df.apply(roll_mean, win_len=10)
+    
+    # rename columns
+    df = df.rename(columns=rename_dict)
+
+    # calculate correlation matrix    
     df_corr = df.corr(method="pearson")
     
+    # plot data
     _, _, start_datetime, end_datetime, date, _ = metadata(period)
     plt.title(f"Pearson-Korrelation der Energiespektren\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
     sns.heatmap(df_corr, 
@@ -443,38 +446,28 @@ def plot_patterns(period: str) -> None:
                 annot=True, fmt=".2f",
                 linewidths=.5,
                 cmap="vlag", vmin=-1, vmax=1,
-    )
-    
+                )
     plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_corr_{period}.png", bbox_inches="tight", dpi=300)
     plt.close()
 
     
-def plot_corr():
+def plot_mean_corr():
+    """Plots the mean correlation matrix of all periods under observation."""
     
+    # calculate mean correlation
     corr_dfs = []
-    
     for period in all_puos:
         df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
         
         # reduce spectra to first 300 rows
-        first_n = 300
+        
         df = df.iloc[:first_n, :]
-
-        # apply roll_mean to each column
         df = df.apply(roll_mean, win_len=10)
-        rename_dict = {
-            "EXPE_t": "Temperatur \n(EXPE)",
-            "SONIC_t": "Temperatur \n(SONIC)",
-            "SONIC_wind_h": "Horizontalwind \n(SONIC)",
-            "SONIC_wind_z": "Vertikalwind \n(SONIC)"
-            }
+        
+
         df = df.rename(columns=rename_dict)
         df = df.iloc[:, 1:]
-        
-        # min max normalize
         df = (df-df.min())/(df.max()-df.min())
-
-        # Computes feature correlation
         corr_dfs.append(df.corr(method="pearson"))
         
     # calculate mean correlation 
