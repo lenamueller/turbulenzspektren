@@ -8,7 +8,7 @@ labels = {
 
 TAPERING_SIZE = 0.1
 KERNEL_SIZE = 10
-WINDOWS_MIN = [1, 2, 3, 5, 10, 20, 30]
+WINDOWS_MIN = [1, 5, 10, 30, 60]
 SAMPLE_RATE = {"EXPE": 1, "SONIC": 2}
 
 
