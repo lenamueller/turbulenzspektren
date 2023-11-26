@@ -2,14 +2,9 @@ import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
-from setup import KERNEL_SIZE, TAPERING_SIZE, SAMPLE_RATE, variables, labels, all_puos, metadata
-from parse import parse_data, get_var
-from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean, \
-    calc_turb_int
-
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
-    plot_win_influence, plot_avg, plot_temporal_coverage, plot_turbulent_intensity, plot_patterns, \
-    plot_corr
+from setup import KERNEL_SIZE, TAPERING_SIZE, all_puos
+from parse import parse_data
+from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean
 
 
 # -----------------------------------------------------------------------------
@@ -125,80 +120,4 @@ for period in all_puos:
     # save to csv
     comparison.to_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv", index=False)
 
-        
-# -----------------------------------------------------------------------------
-# plotting
-# -----------------------------------------------------------------------------
-
-for period in all_puos:
-    
-    
-    
-    for device in ["EXPE", "SONIC"]:
-        print("Run plotting - ", period, "&", device)
-        
-        expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
-
-        for var in variables[device]:
-            l = labels[var]
-            
-            print("\t", l)
-            
-            suptitle_info = f"""{l}\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}\n({device}, {SAMPLE_RATE[device]} Hz)"""
-        
-            print("\t\tPlotting time series preprocessing...")
-            plot_ts(
-                x=get_var(device, period, "Datetime"),
-                y=get_var(device, period, var),
-                fn=f"{period}_{device}_{var}", 
-                title = suptitle_info
-                )
-
-            print("\t\tPlotting spectra...")
-            plot_spectrum(
-                x=get_var(device, period, "Datetime"),
-                y=get_var(device, period, var),
-                fn=f"{period}_{device}_{var}",
-                ylabel=l, 
-                title = suptitle_info
-                )
-            
-            print("\t\tPlotting averaging...")
-            plot_avg(
-                x=get_var(device, period, "Datetime"),
-                y=get_var(device, period, var),
-                device=device,
-                title=suptitle_info,
-                fn=f"avg_{period}_{device}_{var}"
-                )
-            
-            plot_win_influence(
-                x=get_var(device, period, "Datetime"),
-                y=get_var(device, period, var),
-                title=suptitle_info,
-                fn=f"wf_{period}_{device}_{var}"
-            )
-
-
-# temporal coverage
-plot_temporal_coverage()
-
-# spectra comparison
-plot_spectrum_comp("EXPE")
-plot_spectrum_comp("SONIC")
-plot_t_spectrum_comp()
-
-# spectra patterns
-for period in all_puos:
-    plot_patterns(period)
-
-# spectra correlation
-plot_corr()
-
-# window functions
-plot_win()
-
-# turbulent intensity
-plot_turbulent_intensity()
-
-print("Done.")
+print("Done!")

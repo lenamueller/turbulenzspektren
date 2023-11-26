@@ -43,23 +43,20 @@ def _parse_expe(expe_fn: str, start_datetime: str, end_datetime: str) -> pd.Data
     sensor0["Datetime"] = sensor0['Date'].astype(str) +" "+ sensor0["Time"]
     sensor0["Datetime"] = pd.to_datetime(sensor0["Datetime"], format="%Y-%m-%d %H:%M:%S")
     sensor0_flt = sensor0.loc[sensor0['Datetime'].between(start_datetime, end_datetime, inclusive="both")]
-    sensor0_flt = sensor0_flt[["Datetime", "t", "rh", "p"]]
+    sensor0_flt = sensor0_flt[["Datetime", "t"]]
     
     return sensor0_flt
 
-def _calc_3d_wind(row)-> float:
-    """Calculate the absolute wind speed from the 3 wind components."""
-    return np.sqrt(row["windx"]**2 + row["windy"]**2 + row["windz"]**2)
-
 def _calc_2d_wind(row)-> float:
     """Calculate the horizontal wind speed from the 3 wind components."""
-    return np.sqrt(row["windx"]**2 + row["windy"]**2)
+    return np.sqrt(row["wind_x"]**2 + row["wind_y"]**2)
 
 def _parse_sonic(sonic_fn: str, start_datetime: str, end_datetime: str) ->  pd.DataFrame:
     """Parse the data from the dat-file and calculate 2D and 3D wind speed."""
     
-    df = pd.read_csv(sonic_fn, delimiter=",", usecols=[0,2,3,4,5], names=["Datetime", "windx", "windy", "windz", "t"], skiprows=4)    
-    type_cols = {'windx': float, 'windy': float, 'windz': float, 't': float}
+    df = pd.read_csv(sonic_fn, delimiter=",", usecols=[0,2,3,4,5], 
+                     names=["Datetime", "wind_x", "wind_y", "wind_z", "t"], skiprows=4)    
+    type_cols = {'wind_x': float, 'wind_y': float, 'wind_z': float, 't': float}
     df = df.astype(type_cols)
     df = df.dropna()
 
@@ -70,9 +67,8 @@ def _parse_sonic(sonic_fn: str, start_datetime: str, end_datetime: str) ->  pd.D
     df_flt = df.loc[df['Datetime'].between(start_datetime, end_datetime, inclusive="both")]
 
     # Calculate 2D and 3D wind speed speed
-    df_flt.loc[:, "wind3d"] = df_flt.apply(_calc_3d_wind, axis=1)
-    df_flt.loc[:, "wind2d"] = df_flt.apply(_calc_2d_wind, axis=1)
+    df_flt.loc[:, "wind_h"] = df_flt.apply(_calc_2d_wind, axis=1)
 
-    df_flt = df_flt[["Datetime", "t", "wind3d", "wind2d"]]
+    df_flt = df_flt[["Datetime", "t", "wind_h", "wind_z"]]
 
     return df_flt

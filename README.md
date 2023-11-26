@@ -22,10 +22,11 @@ python src/Python_3_11_3/main.py
 `data/`
 - `raw_data/YYYY_MM_DD/` contains the raw data by measuring date as txt-files
 - `spectra_data/` contains the spectra data as csv-files
-- `timeseries_data/ contains the time series data (raw, detrended, tapered) as csv-files`
+- `timeseries_data/` contains the time series data (raw, detrended, tapered) as csv-files
 
 ``src/Python_3_11_3/``
-- `main.py` runs the analysis
+- `main_calculation.py` runs the analysis and saves the data
+- `main_plotting.py` plots the data (`main_calculation.py` has to be run first)
 - `setup.py` contains the setup of the analysis (paths, global variables etc.)
 - `parse.py` parses the raw data
     - ``data = parse_data(device, period)`` parses the raw data from two devices
