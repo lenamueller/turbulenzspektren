@@ -103,9 +103,22 @@ def step_mean(y: np.ndarray, win_len: int
         y_mean.extend(new_values)
     return y_mean
 
-def calc_turb_int(
-        y: np.ndarray
+def turbulente_intensitaet(
+        y: np.ndarray,
+        rel: bool = False
         ) -> float:
     """Calculate the turbulence intensity of the signal."""
-    ti: float = np.std(y) / np.mean(y)
-    return ti
+    if rel:
+        return np.std(y)/np.mean(y)
+    else:
+        return np.std(y)
+
+def turbulenzgrad(
+        wind_x: np.ndarray,
+        wind_y: np.ndarray,
+        wind_z: np.ndarray
+        )-> float:
+    """Calculate the turbulence intensity of the signal."""
+    wind_3d = np.sqrt(wind_x**2 + wind_y**2 + wind_z**2)
+    return np.sqrt((np.std(wind_x)+np.std(wind_y)+np.std(wind_z))/3)/np.mean(wind_3d)
+    
