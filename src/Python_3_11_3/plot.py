@@ -178,31 +178,55 @@ def plot_t_spectrum_comp() -> None:
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> None:
     """Plots the average of a time series."""
 
-    fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10,7), sharex=True)
+    fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10,7))
     fig.suptitle(title, **title_kwargs)
     
-    colors = plt.cm.jet(np.linspace(0,1,len(WINDOWS_MIN)))
+    colors = ["b", "cyan", "yellow", "orange", "r"]
     lw = {"EXPE": 0.8, "SONIC": 0.4}
     
     # plot detrended signal
+    ax[0].set_title("A. Trendbereinigtes Signal", loc="left")
     y_det = detrend_signal(y)
-    ax[0].plot(x, y_det, label="Trendbereinigtes Signal", color="grey", lw=lw[device])
+    ax[0].plot(x, y_det, color="grey", lw=lw[device])
+    ax[0].xaxis.set_major_formatter(DateFormatter('%H:%M'))
     
-    # plot rolling mean and deviation
+    
     win_lens = [i*60*SAMPLE_RATE[device] for i in WINDOWS_MIN]
+    ref = roll_mean(y_det, win_len=60*60*SAMPLE_RATE[device])
+    
+    diff_lists = []
+    error_metrics = {"Mean": [], "Std": [], "Range": []}
+    
     for i, win_len in enumerate(win_lens):
-        y_roll = roll_mean(y_det, win_len)
-        y_dev = y_det - y_roll
-        ax[1].plot(x, y_roll, label=f"Gleitendes Mittel {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
-        ax[2].plot(x, y_dev, label=f"Fluktuation {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
-    
-    for i in range(len(ax)):
-        ax[i].legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        ax[i].grid(True)
-        ax[i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
         
-    plt.tight_layout()
+        # plot rolling mean
+        ax[1].set_title("B. Gleitendes Mittel verschiedener Fensterbreiten", loc="left")    
+        y_roll = roll_mean(y_det, win_len)
+        ax[1].plot(x, y_roll, color=colors[i], lw=lw[device], 
+                   label=f"{WINDOWS_MIN[i]} min")
+        ax[1].xaxis.set_major_formatter(DateFormatter('%H:%M'))
+        
+        # calculate error metrics
+        diff = [i-j for i, j in zip(y_roll, ref)]
+        diff_lists.append(diff)
+        error_metrics["Std"].append(np.round(np.sum([x**2 for x in diff])/(len(ref)-1), 3))
+        error_metrics["Range"].append((np.round(np.max(diff), 3), np.round(np.min(diff), 3)))
+
+    # plot deviation from reference    
+    ax[2].set_title("C. Abweichung vom Referenzwert (60 min - Mittel)", loc="left")
+    ax[2].set_xticks(np.arange(5))
+    ax[2].set_xticklabels([f"""{WINDOWS_MIN[i]} min \n Std = {error_metrics['Std'][i]} \n Range = {error_metrics['Range'][i]}""" for i in range(len(WINDOWS_MIN))])
     
+    sns.violinplot(data=diff_lists, ax=ax[2], palette=colors, 
+                   alpha=0.5, saturation=0.8,
+                   inner_kws=dict(box_width=5, whis_width=2, color="grey"),
+                   
+                   )
+    
+    for row_i in [0, 1, 2]:
+        ax[row_i].grid(True)
+    
+    plt.tight_layout()
     plt.savefig(f"plots/averaging/{fn}.png", dpi=300, bbox_inches="tight")
     plt.close()
 
