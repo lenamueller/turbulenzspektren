@@ -116,7 +116,7 @@ for period in all_puos:
     comparison["SONIC_t"] = calc_spectrum(dt, taper_signal(detrend_signal(t), perc=0.1))[1][:n_expe]
     comparison["SONIC_wind_z"] = calc_spectrum(dt, taper_signal(detrend_signal(wind_z), perc=0.1))[1][:n_expe]
     comparison["SONIC_wind_h"] = calc_spectrum(dt, taper_signal(detrend_signal(wind_h), perc=0.1))[1][:n_expe]
-        
+
     # save to csv
     comparison.to_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv", index=False)
 

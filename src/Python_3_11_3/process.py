@@ -66,7 +66,7 @@ def calc_spectrum(x: np.ndarray, y: np.ndarray
     
     # 1D Discrete Fourier Transform
     fft_output = scipy.fft.fft(y)
-    
+
     # Remove first element (mean) and frequencies above Nyquist frequency.
     fft_output = fft_output[1:n//2]
     
