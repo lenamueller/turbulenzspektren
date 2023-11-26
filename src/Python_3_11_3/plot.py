@@ -376,24 +376,20 @@ def plot_patterns(period: str) -> None:
     # plot spectra
     x = df["frequencies"]
     plt.plot(x, roll_mean(df["EXPE_t"], win_len=10), label="EXPE: T", 
-             lw=1.0, ls="solid", c="red", alpha=0.7)
-    plt.plot(x, roll_mean(df["EXPE_rh"], win_len=10), label="EXPE: rH", 
-             lw=1.0, ls="solid", c="c", alpha=0.7)
-    plt.plot(x, roll_mean(df["EXPE_p"], win_len=10), label="EXPE: p", 
-             lw=1.0, ls="solid", c="b", alpha=0.7)
+             lw=1.0, ls="--", c="red", alpha=0.6)
     plt.plot(x, roll_mean(df["SONIC_t"], win_len=10), label="SONIC: T", 
-             lw=1.0, ls="--", c="r", alpha=0.7)
-    plt.plot(x, roll_mean(df["SONIC_wind2d"], win_len=10), label="SONIC: 2D wind", 
-             lw=1.0, ls="--", c="limegreen", alpha=0.7)
-    plt.plot(x, roll_mean(df["SONIC_wind3d"], win_len=10), label="SONIC: 3D wind", 
-             lw=1.0, ls="--", c="darkgreen", alpha=0.7)
+             lw=1.0, ls="solid", c="r", alpha=0.6)
+    plt.plot(x, roll_mean(df["SONIC_wind_h"], win_len=10), label="SONIC: Horizontalwind", 
+             lw=1.0, ls="solid", c="b", alpha=0.6)
+    plt.plot(x, roll_mean(df["SONIC_wind_z"], win_len=10), label="SONIC: Vertikalwind", 
+             lw=1.0, ls="solid", c="darkgreen", alpha=0.6)
     
     # plot mean and confidence interval
-    plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mean",
+    plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mittelwert",
                 lw=1.0, ls="solid", c="k")
     plt.fill_between(x, roll_mean(df["mean"]-0.5*df["std"], win_len=10),
                         roll_mean(df["mean"]+0.5*df["std"], win_len=10),
-                        color="grey", alpha=0.3, label="Confidence interval (0.5*Std)")
+                        color="grey", alpha=0.3, label="Konfidenzinvervall (0.5*Std)")
     
     # 30 to 60 min range
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
@@ -402,8 +398,8 @@ def plot_patterns(period: str) -> None:
     _, _, start_datetime, end_datetime, date, _ = metadata(period)
     plt.title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
     plt.ylim(bottom=-0.1)
-    plt.ylabel("Normalized spectral Energy Density * Frequency")
-    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Spektrale Energiedichte * Frequenz (min-max-normiert)")
+    plt.xlabel("Frequenz [Hz]")
     plt.xscale("log")
     plt.xlim((1e-4, 1e-1))
     plt.xticks([1e-4, 1e-3, 1e-2, 1e-1])
@@ -411,9 +407,44 @@ def plot_patterns(period: str) -> None:
     plt.grid()
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
-    ax2.set_xlabel("Period [s]")
+    ax2.set_xlabel("Periodendauer [s]")
     plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{period}.png", bbox_inches="tight", dpi=300)
     plt.close()
+    
+    
+    # correlation matrix
+    _, ax = plt.subplots(1, 1, figsize=(7.5, 6))
+    
+    df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+    first_n = 300
+    df = df.iloc[:first_n, :]
+
+    # apply roll_mean to each column
+    df = df.apply(roll_mean, win_len=10)
+    rename_dict = {
+        "EXPE_t": "Temperatur\n(EXPE)",
+        "SONIC_t": "Temperatur\n(SONIC)",
+        "SONIC_wind_h": "Horizontalwind\n(SONIC)",
+        "SONIC_wind_z": "Vertikalwind\n(SONIC)"
+        }
+    df = df.rename(columns=rename_dict)
+    df = df.iloc[:, 1:]
+    df = (df-df.min())/(df.max()-df.min())
+    df_corr = df.corr(method="pearson")
+    
+    _, _, start_datetime, end_datetime, date, _ = metadata(period)
+    plt.title(f"Pearson-Korrelation der Energiespektren\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
+    sns.heatmap(df_corr, 
+                mask=np.eye(len(df_corr)), 
+                center=0, 
+                annot=True, fmt=".2f",
+                linewidths=.5,
+                cmap="vlag", vmin=-1, vmax=1,
+    )
+    
+    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_corr_{period}.png", bbox_inches="tight", dpi=300)
+    plt.close()
+
     
 def plot_corr():
     
@@ -428,14 +459,11 @@ def plot_corr():
 
         # apply roll_mean to each column
         df = df.apply(roll_mean, win_len=10)
-
         rename_dict = {
-            "EXPE_t": "EXPE: T",
-            "EXPE_rh": "EXPE: rH",
-            "EXPE_p": "EXPE: p",
-            "SONIC_t": "SONIC: T",
-            "SONIC_wind2d": "SONIC: 2D wind",
-            "SONIC_wind3d": "SONIC: 3D wind"
+            "EXPE_t": "Temperatur \n(EXPE)",
+            "SONIC_t": "Temperatur \n(SONIC)",
+            "SONIC_wind_h": "Horizontalwind \n(SONIC)",
+            "SONIC_wind_z": "Vertikalwind \n(SONIC)"
             }
         df = df.rename(columns=rename_dict)
         df = df.iloc[:, 1:]
@@ -446,25 +474,17 @@ def plot_corr():
         # Computes feature correlation
         corr_dfs.append(df.corr(method="pearson"))
         
-        # calculate mean of allv alues in df
-        print(period, round(df.mean().mean(), 2))
-    
     # calculate mean correlation 
     df_corr = pd.concat(corr_dfs).groupby(level=0).mean()
     df_corr = df_corr.reindex(index=df_corr.columns)
     
-    labels = np.where(np.abs(df_corr)>0.75, "Strong",
-                  np.where(np.abs(df_corr)>0.5, "Medium",
-                           np.where(np.abs(df_corr)>0.25, "Weak", "")))
-    
     # Plot correlation matrix
-    plt.figure(figsize=(15, 13))
-    plt.title("Mean correlation between variables", **title_kwargs)
+    plt.figure(figsize=(7.5, 6))
+    plt.title("Mittlere Korrelation der Energiespektren", **title_kwargs)
     sns.heatmap(df_corr, 
                 mask=np.eye(len(df_corr)), 
                 center=0, 
                 annot=True, fmt=".2f",
-                # annot=labels, fmt="",
                 linewidths=.5,
                 cmap="vlag", vmin=-1, vmax=1,
                 cbar_kws={"shrink": 0.8}
