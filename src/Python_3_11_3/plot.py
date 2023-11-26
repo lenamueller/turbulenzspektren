@@ -7,7 +7,7 @@ from matplotlib.dates import DateFormatter
 from parse import get_var
 from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, calc_turb_int
 from setup import all_puos, variables, metadata, window_functions, unique_dates
-from setup import WINDOWS_MIN, SAMPLE_RATE
+from setup import WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -16,7 +16,15 @@ smooth_spec_kw_args =   {"lw": 1.0, "alpha": 0.5, "c": "r"}
 title_kwargs =          {"fontweight":"bold", "fontsize":12, "color":"grey"}
 scat_kw_args =          {"s": 1.0, "alpha": 0.6, "c": "darkgrey"}
 range_kw_args =         {"alpha": 0.1, "color": "orange"}
-    
+
+rename_dict = {
+            "EXPE_t": "Temperatur \n(EXPE)",
+            "SONIC_t": "Temperatur \n(SONIC)",
+            "SONIC_wind_h": "Horizontalwind \n(SONIC)",
+            "SONIC_wind_z": "Vertikalwind \n(SONIC)"
+            }    
+
+first_n = 300 # reduce spectra to first 300 rows
 
 def plot_ts(
         x: np.ndarray, y: np.ndarray,
@@ -27,16 +35,16 @@ def plot_ts(
     fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,7))
     
     # plot data
-    ax[0].set_title("A. Raw", loc="left")
+    ax[0].set_title("A. Originale Zeitreihe", loc="left")
     ax[0].plot(x, y, **line_kwargs)
-    ax[1].set_title("B. Detrended", loc="left")
+    ax[1].set_title("B. Zeitreihe nach Trendbereinigung", loc="left")
     ax[1].plot(x, detrend_signal(y), **line_kwargs)
-    ax[2].set_title("C. Tapered", loc="left")
+    ax[2].set_title("C. Zeitreihe nach Tapering", loc="left")
     ax[2].plot(x, taper_signal(detrend_signal(y), 0.1), **line_kwargs)
     
     # plot config
     fig.suptitle(title, **title_kwargs)
-    ax[2].set_xlabel("Time [UTC]")
+    ax[2].set_xlabel("Zeit [UTC]")
     for row_i in range(3):
         ax[row_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
         ax[row_i].set_xlim(x[0], x[-1])
@@ -57,23 +65,23 @@ def plot_spectrum(
     fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(10,7))
     fig.suptitle(title, **title_kwargs)
     
-    ax[0].plot(x, y_tapered, label="Edited time series", **line_kwargs)
-    ax[1].scatter(freq, spec, label="Spectrum", **scat_kw_args)
-    ax[1].plot(freq, roll_mean(spec, win_len=10), label="Rolling mean", **smooth_spec_kw_args)
+    ax[0].plot(x, y_tapered, label="Zeitreihe nach Tapering", **line_kwargs)
+    ax[1].scatter(freq, spec, label="Spektrum", **scat_kw_args)
+    ax[1].plot(freq, roll_mean(spec, win_len=10), label=f"Gleitendes Mittel (Fensterbreite={KERNEL_SIZE})", **smooth_spec_kw_args)
     ax[1].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
     
     ax[0].xaxis.set_major_formatter(DateFormatter('%H:%M'))
     ax[0].set_xlim(x[0], x[-1])
-    ax[0].set_xlabel("Time [UTC]")
+    ax[0].set_xlabel("Zeit [UTC]")
     ax[0].set_ylabel(ylabel)
-    ax[1].set_xlabel("Frequency [Hz]")
-    ax[1].set_ylabel("Spectral Energy Density * Frequency")
+    ax[1].set_xlabel("Frequenz [Hz]")
+    ax[1].set_ylabel("Spektrale Energiedichte * Frequenz")
     ax[1].set_xscale("log")
     ax[1].set_xlim((1e-4, 1e-1))
     ax[1].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
     ax2 = ax[1].secondary_xaxis(-0.2, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
-    ax2.set_xlabel("Period [s]")
+    ax2.set_xlabel("Periodendauer [s]")
     
     for i in [0,1]:
         ax[i].grid(True)
@@ -86,11 +94,9 @@ def plot_spectrum_comp(device: str) -> None:
     """Plots a comparison of all smoothed spectra."""
     
     labels = {
-        "t_spec": "Temperature [°C]",
-        "rh_spec": "Relative Humidity [%]",
-        "p_spec": "Pressure [hPa]",
-        "wind3d_spec": "Wind 3D [m/s]",
-        "wind2d_spec": "Wind 2D [m/s]"
+        "t_spec": "Temperatur [°C]",
+        "wind_h_spec": "Horizontalwind [m/s]",
+        "wind_z_spec": "Vertikalwind [m/s]"
         }
     
     for var in variables[device]:
@@ -102,28 +108,27 @@ def plot_spectrum_comp(device: str) -> None:
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
             
             # plot data            
-            ax[i // 4, i % 4].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
-                                     color="grey")
-            ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                  lw=0.5, c="r")
-            ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
+            lns1 = ax[i // 4, i % 4].scatter(df["frequencies"], df[var], s=0.5, alpha=0.5, 
+                                     color="grey", label="Spektrum")
+            lns2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                                  lw=0.5, c="r", label=f"Gleitendes Mittel (Fensterbreite={KERNEL_SIZE})")
+            lns3 = ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
                                      **range_kw_args)
             
             # plot setup
             _, _, start_datetime, end_datetime, date, _ = metadata(puo)
             ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
-            ax[0, 0].legend(loc='upper left')
+            
             ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
             ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
             ax[i // 4, i % 4].set_xscale("log")
-            ax[i // 4, i % 4].set_xlabel("Frequency [Hz]")
-            ax[i // 4, 0].set_ylabel("Spectral density [(unit)²/Hz]")
-            ax[2, 3].set_visible(False)
+            ax[i // 4, i % 4].set_xlabel("Frequenz [Hz]")
+            ax[i // 4, 0].set_ylabel("Spektrale Energiedichte * Frequenz")
             ax[i // 4, i % 4].grid()
-                
+            ax[2, 3].axis('off')
             ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
             ax2.set_xticks([10000, 1000, 100, 10])
-            ax2.set_xlabel("Period [s]")
+            ax2.set_xlabel("Periodendauer [s]")
             
             
         plt.tight_layout()
@@ -135,7 +140,7 @@ def plot_t_spectrum_comp() -> None:
     
     var = "t_spec"
     fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
-    fig.suptitle("Temperature [°C]\n", **title_kwargs)
+    fig.suptitle("Temperatur [°C]\n", **title_kwargs)
 
     for i, puo in enumerate(all_puos):
         
@@ -157,14 +162,14 @@ def plot_t_spectrum_comp() -> None:
         ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
         ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
         ax[i // 4, i % 4].set_xscale("log")
-        ax[i // 4, i % 4].set_xlabel("Frequency [Hz]")
-        ax[i // 4, 0].set_ylabel("Spectral density [(unit)²/Hz]")
+        ax[i // 4, i % 4].set_xlabel("Frequenz [Hz]")
+        ax[i // 4, 0].set_ylabel("Spektrale Energiedichte * Frequenz") # (unit)²/Hz
         ax[2, 3].set_visible(False)
         ax[i // 4, i % 4].grid()
             
         ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
         ax2.set_xticks([10000, 1000, 100, 10])
-        ax2.set_xlabel("Period [s]")
+        ax2.set_xlabel("Periodendauer [s]")
             
     plt.tight_layout()
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
@@ -181,18 +186,17 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
     
     # plot detrended signal
     y_det = detrend_signal(y)
-    ax[0].plot(x, y_det, label="Detrended signal", color="grey", lw=lw[device])
+    ax[0].plot(x, y_det, label="Trendbereinigtes Signal", color="grey", lw=lw[device])
     
     # plot rolling mean and deviation
     win_lens = [i*60*SAMPLE_RATE[device] for i in WINDOWS_MIN]
     for i, win_len in enumerate(win_lens):
         y_roll = roll_mean(y_det, win_len)
         y_dev = y_det - y_roll
-        ax[1].plot(x, y_roll, label=f"Mean {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
-        ax[2].plot(x, y_dev, label=f"Turbulence {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
+        ax[1].plot(x, y_roll, label=f"Gleitendes Mittel {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
+        ax[2].plot(x, y_dev, label=f"Fluktuation {WINDOWS_MIN[i]} min", color=colors[i], lw=lw[device])
     
     for i in range(len(ax)):
-        # plot legend on right side of subplots
         ax[i].legend(loc='center left', bbox_to_anchor=(1, 0.5))
         ax[i].grid(True)
         ax[i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
@@ -214,13 +218,13 @@ def plot_win() -> None:
         ax[i//4, i%4].plot(
             np.arange(100), 
             taper_signal(y=np.ones(100), perc=0.5, func=wf),
-            c="grey", lw=0.8, label="Full range")
+            c="grey", lw=0.8, label="Gesamte Breite")
         
         # taper only first and last 10 %
         ax[i//4, i%4].plot(
             np.arange(100), 
             taper_signal(y=np.ones(100), perc=0.1, func=wf),
-            c="navy", lw=0.8, label="First and last 10 %")
+            c="navy", lw=0.8, label="Äußeren 10 %")
         
         ax[i//4, i%4].set_title(wf.__name__)
         ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)

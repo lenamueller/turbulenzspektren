@@ -1,11 +1,9 @@
-variables = {"EXPE": ["t", "rh", "p"], "SONIC": ["t", "wind3d", "wind2d"]}
+variables = {"EXPE": ["t"], "SONIC": ["t", "wind_z", "wind_h"]}
 
 labels = {
-    "t": "Temperature [°C]",
-    "rh": "Relative Humidity [%]",
-    "p": "Pressure [hPa]",
-    "wind3d": "Wind 3D [m/s]",
-    "wind2d": "Wind 2D [m/s]"
+    "t": "Temperatur [°C]",
+    "wind_z": "Vertikalwind [m/s]",
+    "wind_h": "Horizontalwind [m/s]"
     }
 
 TAPERING_SIZE = 0.1
