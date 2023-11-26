@@ -1,4 +1,3 @@
-import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -6,9 +5,8 @@ from setup import SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import get_var
 
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
-    plot_win_influence, plot_avg, plot_temporal_coverage, plot_patterns, \
-    plot_mean_corr
-
+    plot_win_influence, plot_avg, plot_temporal_coverage, plot_patterns, plot_mean_corr
+    
 
 # plotting agenda
 PLOT_TEMPORAL_COVERAGE = False
@@ -16,6 +14,11 @@ PLOT_TIME_SERIES = False
 PLOT_SPECTRUM_DATA = False
 PLOT_WINDOW_FUNCTION_INFLUENCE = False
 PLOT_AVERAGING = True
+
+TEST_MODE = False
+
+if TEST_MODE:
+    all_puos = ["PUO_01"]
 
 # -----------------------------------------------------------------------------
 # plot temporal coverage
@@ -35,7 +38,7 @@ if PLOT_TIME_SERIES:
         for device in ["EXPE", "SONIC"]:
             print("\t", period, "&", device)
         
-            expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
+            _, _, start_datetime, end_datetime, date, _ = metadata(period)
 
             for var in variables[device]:
                 plot_ts(
@@ -52,7 +55,7 @@ if PLOT_TIME_SERIES:
 if PLOT_SPECTRUM_DATA:
     print("Plot spectrum data...")
     for period in all_puos:
-        expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
+        _, _, start_datetime, end_datetime, date, _ = metadata(period)
         
         for device in ["EXPE", "SONIC"]:
             print("\t", period, "&", device)
@@ -90,7 +93,7 @@ if PLOT_WINDOW_FUNCTION_INFLUENCE:
 
     # plot influence of window functions on spectra
     for period in all_puos:
-        expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
+        _, _, start_datetime, end_datetime, date, _ = metadata(period)
         
         for device in ["EXPE", "SONIC"]:
             print("\t", period, "&", device)
@@ -111,7 +114,7 @@ if PLOT_AVERAGING:
     print("Plot averaging...")
     
     for period in all_puos:
-        expe_fn, sonic_fn, start_datetime, end_datetime, date, day = metadata(period)
+        _, _, start_datetime, end_datetime, date, _ = metadata(period)
         
         for device in ["EXPE", "SONIC"]:
             print("\t", period, "&", device)
