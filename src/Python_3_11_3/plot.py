@@ -255,9 +255,11 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
 def plot_temporal_coverage() -> None:
     """Plots the temporal coverage of the experiments."""
     
-    _, ax = plt.subplots(nrows=len(unique_dates), ncols=1, figsize=(15,20))
+    _, ax = plt.subplots(nrows=3, ncols=2, figsize=(15,9), sharex=False, sharey=True)
         
     for i in range(len(unique_dates)):
+        row_i = i // 2
+        col_i = i % 2
         
         # get data
         period = f"Day{i+1}"
@@ -265,22 +267,20 @@ def plot_temporal_coverage() -> None:
         expe_t = get_var("EXPE", period, "t")
         sonic_dt = get_var("SONIC", period, "Datetime")
         sonic_t = get_var("SONIC", period, "t")
-        sonic_3dwind = get_var("SONIC", period, "wind3d")
+        sonic_h = get_var("SONIC", period, "wind_h")
                 
-        ax2 = ax[i].twinx() # secondary y-axis for wind speed
+        ax2 = ax[row_i, col_i].twinx()
         
-        lns = [] # legend entries
-
         # plot data
-        lns1 = ax[i].plot(
-            sonic_dt, sonic_t, label="SONIC Temp.", 
-            lw=0.5, ls = "solid", alpha=0.5, c="darkblue")
-        lns2 = ax[i].plot(
-            expe_dt, expe_t, label="EXPE Temp.", 
-            lw=1, ls="-.", alpha=0.5, c="darkblue")
+        lns1 = ax[row_i, col_i].plot(
+            sonic_dt, sonic_t, label="SONIC Temperatur", 
+            lw=0.5, ls = "solid", alpha=0.6, c="darkblue")
+        lns2 = ax[row_i, col_i].plot(
+            expe_dt, expe_t, label="EXPE Temperatur", 
+            lw=0.5, ls="solid", alpha=0.6, c="blue")
         lns3 = ax2.plot(
-            sonic_dt, sonic_3dwind, lw=0.2, alpha=0.5, 
-            c="r", label="SONIC wind speed")
+            sonic_dt, sonic_h, lw=0.2, alpha=0.6, 
+            c="r", label="SONIC Horizontalwind")
     
         # highlight puos
         ranges = []
@@ -294,32 +294,33 @@ def plot_temporal_coverage() -> None:
             ax_i, start, end = ranges[j]
             if ax_i == i:
                 hours = round((end-start).total_seconds()/(60*60), 1)
-                ln_polygon = ax[i].axvspan(ranges[j][1], ranges[j][2], alpha=0.1, 
-                                            color='gold', label=f"PUO {j+1}: {hours} h")
-                lns += [ln_polygon]
+                ax[row_i, col_i].axvspan(ranges[j][1], ranges[j][2], alpha=0.1, 
+                                         color='gold', label=f"PUO {j+1}: {hours} h")
         
         # plot config
-        ax[i].set_title(f"{unique_dates[i]}", fontweight='bold', color="k", fontsize=14)
-        ax[0].text(0,1.05,"PUO = Period under observation", transform=ax[0].transAxes, 
-                    color="grey")
-        ax[i].set_ylabel("Temperature [°C]", color="darkblue")
-        ax[i].set_xlabel("Time [UTC]")
-        ax2.set_ylabel("Wind speed [m/s]", color="r")
-        ax[i].set_ylim((10,45))
+        ax[row_i, col_i].set_title(f"{unique_dates[i]}", fontweight='bold', color="k", fontsize=14)
+        ax[row_i, col_i].set_ylabel("Temperatur [°C]", color="darkblue")
+        ax[row_i, col_i].set_xlabel("Zeit [UTC]")
+        ax2.set_ylabel("Windgeschwindigkeit [m/s]", color="r")
+        ax[row_i, col_i].set_ylim((10,45))
         ax2.set_ylim((0, 10))
-        ax[i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
-        ax[i].grid(True)
+        ax[row_i, col_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
+        ax[row_i, col_i].grid(True)
 
         date = unique_dates[i]
         da, mo, ye = date.split(".")
-        ax[i].set_xlim((
+        ax[row_i, col_i].set_xlim((
                 pd.Timestamp(int(ye), int(mo), int(da), 5, 0), 
                 pd.Timestamp(int(ye), int(mo), int(da), 17, 0)
                 ))
         
-        lns += lns1+lns2+lns3
+        lns = lns1+lns2+lns3
         labs = [l.get_label() for l in lns]
-        ax[i].legend(lns, labs, loc="upper left")
+        leg = ax[2, 1].legend(lns, labs, loc="center", fontsize="20")
+        for line in leg.get_lines():
+            line.set_linewidth(4.0)
+            
+        ax[2, 1].axis('off')
         
     plt.tight_layout()
     plt.savefig("plots/temporal_coverage/temporal_coverage.png", 
