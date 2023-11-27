@@ -284,7 +284,7 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
 def plot_temporal_coverage() -> None:
     """Plots the temporal coverage of the experiments."""
     
-    _, ax = plt.subplots(nrows=3, ncols=2, figsize=(15,9), sharex=False, sharey=True)
+    _, ax = plt.subplots(nrows=3, ncols=2, figsize=(13,7), sharex=False, sharey=True)
         
     for i in range(len(unique_dates)):
         row_i = i // 2
@@ -303,13 +303,13 @@ def plot_temporal_coverage() -> None:
         # plot data
         lns1 = ax[row_i, col_i].plot(
             sonic_dt, sonic_t, label="SONIC Temperatur", 
-            lw=0.5, ls = "solid", alpha=0.6, c="darkblue")
+            lw=0.3, ls = "solid", alpha=0.6, c="darkblue")
         lns2 = ax[row_i, col_i].plot(
             expe_dt, expe_t, label="EXPE Temperatur", 
             lw=0.5, ls="solid", alpha=0.6, c="blue")
         lns3 = ax2.plot(
-            sonic_dt, sonic_h, lw=0.2, alpha=0.6, 
-            c="r", label="SONIC Horizontalwind")
+            sonic_dt, sonic_h, label="SONIC Horizontalwind",
+            lw=0.3, alpha=0.6, c="r", )
     
         # highlight puos
         ranges = []
@@ -327,10 +327,10 @@ def plot_temporal_coverage() -> None:
                                          color='gold', label=f"PUO {j+1}: {hours} h")
         
         # plot config
-        ax[row_i, col_i].set_title(f"{unique_dates[i]}", fontweight='bold', color="k", fontsize=14)
+        ax[row_i, col_i].set_title(f"{unique_dates[i]}", **title_kwargs)
         ax[row_i, col_i].set_ylabel("Temperatur [°C]", color="darkblue")
         ax[row_i, col_i].set_xlabel("Zeit [UTC]")
-        ax2.set_ylabel("Windgeschwindigkeit [m/s]", color="r")
+        ax2.set_ylabel("Windgeschw. [m/s]", color="r")
         ax[row_i, col_i].set_ylim((10,45))
         ax2.set_ylim((0, 10))
         ax[row_i, col_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
@@ -345,7 +345,7 @@ def plot_temporal_coverage() -> None:
         
         lns = lns1+lns2+lns3
         labs = [l.get_label() for l in lns]
-        leg = ax[2, 1].legend(lns, labs, loc="center", fontsize="20")
+        leg = ax[2, 1].legend(lns, labs, loc="center", fontsize="16")
         for line in leg.get_lines():
             line.set_linewidth(4.0)
             
