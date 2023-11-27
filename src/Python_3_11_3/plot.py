@@ -363,7 +363,7 @@ def plot_patterns(period: str) -> None:
     _, ax = plt.subplots(1, 1, figsize=(10, 7))
     
     # read spectra data
-    df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+    df = pd.read_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv")
     
     # norm spectra
     df = (df-df.min())/(df.max()-df.min())
@@ -419,7 +419,7 @@ def plot_patterns(period: str) -> None:
     _, ax = plt.subplots(1, 1, figsize=(7.5, 6))
     
     # read spectra data
-    df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+    df = pd.read_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv")
     
     # norm spectra
     df = (df-df.min())/(df.max()-df.min())
@@ -457,7 +457,7 @@ def plot_mean_corr():
     # calculate mean correlation
     corr_dfs = []
     for period in all_puos:
-        df = pd.read_csv(f"data/spectra_data/comparison_{period}.csv")
+        df = pd.read_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv")
         
         # reduce spectra to first 300 rows
         
