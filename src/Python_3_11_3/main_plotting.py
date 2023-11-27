@@ -11,10 +11,10 @@ from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
 
 # plotting agenda
 PLOT_TEMPORAL_COVERAGE          = True
-PLOT_TIME_SERIES                = True
-PLOT_SPECTRUM_DATA              = True
-PLOT_WINDOW_FUNCTION_INFLUENCE  = True
-PLOT_AVERAGING                  = True
+PLOT_TIME_SERIES                = False
+PLOT_SPECTRUM_DATA              = False
+PLOT_WINDOW_FUNCTION_INFLUENCE  = False
+PLOT_AVERAGING                  = False
 
 TEST_MODE                       = False
 all_puos = ["PUO_01"] if TEST_MODE else all_puos

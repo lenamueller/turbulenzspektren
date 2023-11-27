@@ -284,11 +284,13 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
 def plot_temporal_coverage() -> None:
     """Plots the temporal coverage of the experiments."""
     
-    _, ax = plt.subplots(nrows=3, ncols=2, figsize=(13,7), sharex=False, sharey=True)
-        
+    _, ax = plt.subplots(nrows=2, ncols=3, figsize=(14,7), 
+                         sharex=False, sharey=True, 
+                         gridspec_kw = {'wspace':0, 'hspace':1})
+    
     for i in range(len(unique_dates)):
-        row_i = i // 2
-        col_i = i % 2
+        row_i = i // 3
+        col_i = i % 3
         
         # get data
         period = f"Day{i+1}"
@@ -327,15 +329,21 @@ def plot_temporal_coverage() -> None:
                                          color='gold', label=f"PUO {j+1}: {hours} h")
         
         # plot config
-        ax[row_i, col_i].set_title(f"{unique_dates[i]}", **title_kwargs)
-        ax[row_i, col_i].set_ylabel("Temperatur [°C]", color="darkblue")
+        ax[row_i, col_i].set_title(f"Messtag {i+1}: {unique_dates[i]}", loc="left", **title_kwargs)
+        ax[row_i, 0].set_ylabel("Temperatur [°C]", color="darkblue")
         ax[row_i, col_i].set_xlabel("Zeit [UTC]")
-        ax2.set_ylabel("Windgeschw. [m/s]", color="r")
         ax[row_i, col_i].set_ylim((10,45))
-        ax2.set_ylim((0, 10))
         ax[row_i, col_i].xaxis.set_major_formatter(DateFormatter('%H:%M'))
         ax[row_i, col_i].grid(True)
-
+        
+        ax2.set_ylim((0, 10))
+        if col_i == 2:
+            ax2.set_ylabel("Windgeschw. [m/s]", color="r")
+        else:
+            pass
+        if col_i != 2:
+            ax2.set_yticks([])
+        
         date = unique_dates[i]
         da, mo, ye = date.split(".")
         ax[row_i, col_i].set_xlim((
@@ -345,11 +353,11 @@ def plot_temporal_coverage() -> None:
         
         lns = lns1+lns2+lns3
         labs = [l.get_label() for l in lns]
-        leg = ax[2, 1].legend(lns, labs, loc="center", fontsize="16")
+        leg = ax[1, 2].legend(lns, labs, loc="center", fontsize="14")
         for line in leg.get_lines():
             line.set_linewidth(4.0)
             
-        ax[2, 1].axis('off')
+        ax[1, 2].axis('off')
         
     plt.tight_layout()
     plt.savefig("plots/temporal_coverage/temporal_coverage.png", 
