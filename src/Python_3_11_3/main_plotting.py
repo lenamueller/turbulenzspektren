@@ -4,21 +4,20 @@ warnings.filterwarnings("ignore")
 from setup import SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import get_var
 
-from plot import plot_ts, plot_spectrum, plot_spectrum_comp, plot_t_spectrum_comp, plot_win, \
-    plot_win_influence, plot_avg, plot_temporal_coverage, plot_patterns, plot_mean_corr
+from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
+    plot_t_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
+    plot_temporal_coverage, plot_patterns, plot_mean_corr
     
 
 # plotting agenda
-PLOT_TEMPORAL_COVERAGE = False
-PLOT_TIME_SERIES = False
-PLOT_SPECTRUM_DATA = False
-PLOT_WINDOW_FUNCTION_INFLUENCE = False
-PLOT_AVERAGING = True
+PLOT_TEMPORAL_COVERAGE          = True
+PLOT_TIME_SERIES                = True
+PLOT_SPECTRUM_DATA              = True
+PLOT_WINDOW_FUNCTION_INFLUENCE  = True
+PLOT_AVERAGING                  = True
 
-TEST_MODE = False
-
-if TEST_MODE:
-    all_puos = ["PUO_01"]
+TEST_MODE                       = False
+all_puos = ["PUO_01"] if TEST_MODE else all_puos
 
 # -----------------------------------------------------------------------------
 # plot temporal coverage

@@ -81,17 +81,16 @@ def calc_spectrum(x: np.ndarray, y: np.ndarray
     
     return freq, spectrum
 
-def roll_mean(y: np.ndarray, win_len: int
+def roll_mean(y: np.ndarray, win_len: int, mode: str = "nearest"
               ) -> np.ndarray:
-    """Calculate the rolling mean of the time series (x, y) 
-    using a window of length win_len."""
-    y_mean = []
-    for i in range(len(y)):
-        if i < win_len:
-            y_mean.append(np.mean(y[0:i+1]))
-        else:
-            y_mean.append(np.mean(y[i-win_len:i]))
-    return y_mean
+    """
+    Calculate the rolling mean of the time series (x, y) using 
+    a window of length win_len. The mode parameter determines 
+    how the input array is extended beyond its boundaries. Default is 
+    'nearest'.
+    """
+    return scipy.ndimage.uniform_filter1d(y, win_len, mode=mode)
+    
 
 def step_mean(y: np.ndarray, win_len: int
               ) -> np.ndarray:

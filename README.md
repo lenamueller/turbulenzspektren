@@ -41,7 +41,7 @@ python src/Python_3_11_3/main.py
     - ``y_det = detrend_signal(y)`` detrends the data
     - ``y_tap = taper_signal(y, func, perc)`` tapers x percentage of the data
     - ``freq, spectrum = calc_spectrum(y)`` calculates the spectrum of the data
-    - ``x, y_mean = roll_mean(y, win_len)`` calculates the rolling mean of the spectrum
+    - ``x, y_mean = roll_mean(y, win_len, mode)`` calculates the rolling mean of the spectrum
     - ``x, y_mean = step_mean(y, win_len)`` calculates the step mean of the spectrum
     - ``y_norm = min_max_norm(y)`` calculates the min-max-normalization of the data
 - `plot.py` plots the data
