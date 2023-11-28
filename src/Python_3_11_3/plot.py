@@ -14,7 +14,7 @@ from setup import WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
 line_kwargs =           {"color":"mediumblue", "lw":0.6}
 smooth_spec_kw_args =   {"lw": 1.0, "alpha": 0.5, "c": "r"}
-title_kwargs =          {"fontweight":"bold", "fontsize":12, "color":"grey"}
+title_kwargs =          {"fontweight":"bold", "fontsize":12, "color":"grey", "y":1.05}
 scat_kw_args =          {"s": 1.0, "alpha": 0.6, "c": "darkgrey"}
 range_kw_args =         {"alpha": 0.1, "color": "orange"}
 
@@ -33,7 +33,8 @@ def plot_ts(
         ) -> None:
     """Plots the processing steps (raw, detrend, taper) of a time series."""
     
-    fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,7))
+    fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(9,6), 
+                           gridspec_kw={'hspace': 0.4})
     
     # plot data
     ax[0].set_title("A. Originale Zeitreihe", loc="left")
