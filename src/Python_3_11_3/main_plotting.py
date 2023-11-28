@@ -11,10 +11,10 @@ from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
 
 # plotting agenda
 PLOT_TEMPORAL_COVERAGE          = True
-PLOT_TIME_SERIES                = False
-PLOT_SPECTRUM_DATA              = False
-PLOT_WINDOW_FUNCTION_INFLUENCE  = False
-PLOT_AVERAGING                  = False
+PLOT_TIME_SERIES                = True
+PLOT_SPECTRUM_DATA              = True
+PLOT_WINDOW_FUNCTION_INFLUENCE  = True
+PLOT_AVERAGING                  = True
 
 TEST_MODE                       = False
 all_puos = ["PUO_01"] if TEST_MODE else all_puos
@@ -68,14 +68,14 @@ if PLOT_SPECTRUM_DATA:
                     ylabel=labels[var], 
                     title = f"""{labels[var]}\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}\n({device}, {SAMPLE_RATE[device]} Hz)"""
                     )
+        
+        # plot comparison normalized spectra
+        plot_patterns(period)
     
     # plot comparison smoothed spectra
     plot_spectrum_comp("EXPE")
     plot_spectrum_comp("SONIC")
     plot_t_spectrum_comp()
-    
-    # plot comparison normalized spectra
-    plot_patterns(period)   
     
     # plot spectra correlation matrix
     plot_mean_corr()

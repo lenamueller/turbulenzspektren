@@ -64,7 +64,8 @@ def plot_spectrum(
     y_tapered = taper_signal(detrend_signal(y), 0.1)
     freq, spec = calc_spectrum(x, y_tapered)
     
-    fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(10,7))
+    fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(9,6), 
+                           gridspec_kw={'hspace': 0.4})
     fig.suptitle(title, **title_kwargs)
     
     ax[0].plot(x, y_tapered, label="Zeitreihe nach Tapering", **line_kwargs)
@@ -81,13 +82,13 @@ def plot_spectrum(
     ax[1].set_xscale("log")
     ax[1].set_xlim((1e-4, 1e-1))
     ax[1].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
-    ax2 = ax[1].secondary_xaxis(-0.2, functions=(lambda x: 1/x, lambda x: 1/x))
+    ax2 = ax[1].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
     ax2.set_xlabel("Periodendauer [s]")
     
     for i in [0,1]:
         ax[i].grid(True)
-        ax[i].legend(loc="upper left")
+        ax[i].legend(loc="upper left", fontsize=12)
         
     plt.savefig(f"plots/spectra/spec_{fn}.png", dpi=300, bbox_inches="tight")
     plt.close()
@@ -103,7 +104,7 @@ def plot_spectrum_comp(device: str) -> None:
     
     for var in variables[device]:
         var = var+"_spec"
-        fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
+        fig, ax = plt.subplots(3, 4, figsize=(19, 11), sharex=False, sharey=False)
         fig.suptitle(labels[var]+f"\n\n({device}, {SAMPLE_RATE[device]} Hz)", **title_kwargs)
     
         for i, puo in enumerate(all_puos):
@@ -125,14 +126,13 @@ def plot_spectrum_comp(device: str) -> None:
             ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
             ax[i // 4, i % 4].set_xscale("log")
             ax[i // 4, i % 4].set_xlabel("Frequenz [Hz]")
-            ax[i // 4, 0].set_ylabel("Spektrale Energiedichte * Frequenz")
             ax[i // 4, i % 4].grid()
             ax[2, 3].axis('off')
-            ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
+            ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.35, functions=(lambda x: 1/x, lambda x: 1/x))
             ax2.set_xticks([10000, 1000, 100, 10])
             ax2.set_xlabel("Periodendauer [s]")
             
-            
+        fig.text(-0.02, 0.5, "Spektrale Energiedichte * Frequenz", va='center', rotation='vertical', fontsize=12)
         plt.tight_layout()
         plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
         plt.close()
@@ -141,7 +141,7 @@ def plot_t_spectrum_comp() -> None:
     """Plots a comparison of all smoothed spectra for both devices."""
     
     var = "t_spec"
-    fig, ax = plt.subplots(3, 4, figsize=(20, 12), sharex=False, sharey=False)
+    fig, ax = plt.subplots(3, 4, figsize=(19, 11), sharex=False, sharey=False)
     fig.suptitle("Temperatur [°C]\n", **title_kwargs)
 
     for i, puo in enumerate(all_puos):
@@ -152,26 +152,37 @@ def plot_t_spectrum_comp() -> None:
         for device in ["EXPE", "SONIC"]:
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
             if device == "EXPE":
-                ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
                                 lw=0.5, c="b", label="EXPE (1 Hz)")
             else:
-                ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
+                ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
                                 lw=0.5, c="g", label="SONIC (2 Hz)")
             
         _, _, start_datetime, end_datetime, date, _ = metadata(puo)
         ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
-        ax[0, 0].legend(loc='upper right')
+        
         ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
         ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
         ax[i // 4, i % 4].set_xscale("log")
         ax[i // 4, i % 4].set_xlabel("Frequenz [Hz]")
-        ax[i // 4, 0].set_ylabel("Spektrale Energiedichte * Frequenz") # (unit)²/Hz
-        ax[2, 3].set_visible(False)
         ax[i // 4, i % 4].grid()
-            
-        ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.3, functions=(lambda x: 1/x, lambda x: 1/x))
+        
+        ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.35, functions=(lambda x: 1/x, lambda x: 1/x))
         ax2.set_xticks([10000, 1000, 100, 10])
         ax2.set_xlabel("Periodendauer [s]")
+    
+    
+    fig.text(-0.02, 0.5, "Spektrale Energiedichte * Frequenz", va='center', rotation='vertical', fontsize=12)
+    
+    # ax[2, 3].set_visible(False)        
+    ax[2, 3].axis('off')
+        
+    # ax[0, 0].legend(loc='upper right')
+    lns = ln1+ln2
+    labs = [l.get_label() for l in lns]
+    leg = ax[2, 3].legend(lns, labs, loc="center", fontsize="14")
+    for line in leg.get_lines():
+        line.set_linewidth(4.0)
             
     plt.tight_layout()
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
@@ -235,7 +246,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
 def plot_win() -> None:
     """Plots the nonparametric window functions."""
     
-    _, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
+    _, ax = plt.subplots(nrows=4, ncols=4, figsize=(10, 10),
                            sharex=True, sharey=True)
     
     for i, wf in enumerate(window_functions):
@@ -262,7 +273,7 @@ def plot_win() -> None:
 def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> None:
     """Plots the influence of different window functions on the spectrum."""
     
-    fig, ax = plt.subplots(nrows=4, ncols=4, figsize=(14, 14),
+    fig, ax = plt.subplots(nrows=4, ncols=4, figsize=(10, 10),
                            sharex=True, sharey=True)
     
     fig.suptitle(title, **title_kwargs)
@@ -369,7 +380,7 @@ def plot_temporal_coverage() -> None:
 def plot_patterns(period: str) -> None:
     """Plot all spectra for a single period under observation."""
     
-    _, ax = plt.subplots(1, 1, figsize=(10, 7))
+    _, ax = plt.subplots(1, 1, figsize=(8, 5))
     
     # read spectra data
     df = pd.read_csv(f"data/spectra_data/{period}_comparison_spectrum_data.csv")
@@ -387,13 +398,13 @@ def plot_patterns(period: str) -> None:
     
     # plot spectra
     x = df["frequencies"]
-    plt.plot(x, roll_mean(df["EXPE_t"], win_len=10), label="EXPE: T", 
+    plt.plot(x, roll_mean(df["EXPE_t"], win_len=10), label="Temperatur (EXPE)", 
              lw=1.0, ls="--", c="red", alpha=0.6)
-    plt.plot(x, roll_mean(df["SONIC_t"], win_len=10), label="SONIC: T", 
+    plt.plot(x, roll_mean(df["SONIC_t"], win_len=10), label="Temperatur (SONIC)", 
              lw=1.0, ls="solid", c="r", alpha=0.6)
-    plt.plot(x, roll_mean(df["SONIC_wind_h"], win_len=10), label="SONIC: Horizontalwind", 
+    plt.plot(x, roll_mean(df["SONIC_wind_h"], win_len=10), label="Horizontalwind (SONIC)", 
              lw=1.0, ls="solid", c="b", alpha=0.6)
-    plt.plot(x, roll_mean(df["SONIC_wind_z"], win_len=10), label="SONIC: Vertikalwind", 
+    plt.plot(x, roll_mean(df["SONIC_wind_z"], win_len=10), label="Vertikalwind (SONIC)", 
              lw=1.0, ls="solid", c="darkgreen", alpha=0.6)
     
     # plot mean and confidence interval
@@ -415,7 +426,7 @@ def plot_patterns(period: str) -> None:
     plt.xscale("log")
     plt.xlim((1e-4, 1e-1))
     plt.xticks([1e-4, 1e-3, 1e-2, 1e-1])
-    plt.legend()
+    plt.legend(loc="upper left")
     plt.grid()
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
