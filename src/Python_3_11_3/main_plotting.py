@@ -6,17 +6,19 @@ from parse import get_var
 
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
     plot_t_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
-    plot_temporal_coverage, plot_patterns, plot_mean_corr
+    plot_temporal_coverage, plot_patterns, plot_mean_corr, \
+    plot_turb_intensity
     
 
 # plotting agenda
-PLOT_TEMPORAL_COVERAGE          = True
-PLOT_TIME_SERIES                = True
-PLOT_SPECTRUM_DATA              = True
-PLOT_WINDOW_FUNCTION_INFLUENCE  = True
-PLOT_AVERAGING                  = True
+PLOT_TEMPORAL_COVERAGE          = False
+PLOT_TIME_SERIES                = False
+PLOT_SPECTRUM_DATA              = False
+PLOT_WINDOW_FUNCTION_INFLUENCE  = False
+PLOT_AVERAGING                  = False
+PLOT_TURBULENCE_INTENSITY       = True
 
-TEST_MODE                       = False
+TEST_MODE                       = True
 all_puos = ["PUO_01"] if TEST_MODE else all_puos
 
 # -----------------------------------------------------------------------------
@@ -128,8 +130,18 @@ if PLOT_AVERAGING:
                     )
         
 
+# -----------------------------------------------------------------------------
+# plot turbulence intensity
+# -----------------------------------------------------------------------------
+
+if PLOT_TURBULENCE_INTENSITY:
+    print("Plot turbulence intensity...")
+    plot_turb_intensity(which="abs")
+    plot_turb_intensity(which="rel")
+
+# -----------------------------------------------------------------------------
+
 print("Done!")
 
-# TODO: calculate turbulence intensity
 # print(f"\tTurbulente Intensität Horizontalwind: {turbulente_intensitaet(y=timeseries_data['wind_h'])}")
 # print(f"\tTurbulente Intensität Vertikalwind {turbulente_intensitaet(y=timeseries_data['wind_z'])}")

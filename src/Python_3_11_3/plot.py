@@ -5,10 +5,9 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 from parse import get_var
-from process import detrend_signal, taper_signal, calc_spectrum, roll_mean, \
-    turbulente_intensitaet
-from setup import all_puos, variables, metadata, window_functions, unique_dates
-from setup import WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
+from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
+from setup import all_puos, variables, metadata, window_functions, unique_dates, \
+    labels, WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -508,3 +507,55 @@ def plot_mean_corr():
     
     plt.savefig(f"plots/other/correlation_mean.png", bbox_inches="tight", dpi=300)
     plt.close()
+
+def plot_turb_intensity(which: str) -> None:
+
+    plt.figure(figsize=(9, 6))
+    
+    colors = {
+        "EXPE_t": "r",
+        "SONIC_t": "darkred",
+        "SONIC_wind_h": "b", 
+        "SONIC_wind_z": "g"
+        }
+    
+    for period in all_puos:
+        _, _, start_datetime, end_datetime, date, _ = metadata(period)
+        if period != "PUO_05":
+            for device in ["EXPE", "SONIC"]:
+                df = pd.read_csv(f"data/turbulence_intensity_data/{period}_{device}_turbulence_intensity_data.csv")
+                df["time"] = df["from"].apply(lambda x: x[11:16])
+                
+                for var in variables[device]:
+                    x = [f"{str(i).zfill(2)}:{str(j).zfill(2)}" for i in range(24) for j in range(0, 60, 10)]
+                    y = [np.nan for _ in range(len(x))]
+
+                    for i in range(len(df)):
+                        if which == "abs":
+                            y[x.index(df["time"][i])] = df[f"{var}_abs"][i]
+                        elif which == "rel":
+                            y[x.index(df["time"][i])] = df[f"{var}_rel"][i]
+                    
+                        plt.scatter(x, y, label=f"{device}: {labels[var]}", 
+                                lw=0.5, color=colors[f"{device}_{var}"], 
+                                alpha=0.5, s=10, zorder=10
+                                )
+    
+    plt.ylabel("Turbulenzintensität")
+    plt.xlabel("Zeit [UTC]")
+    plt.grid()
+    plt.xticks([f"{str(i).zfill(2)}:00" for i in range(6,18,1)], rotation=90)
+    if which == "abs":
+        pass
+    else:
+        plt.ylim([0,3])
+    
+    leg_handles, leg_labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(leg_labels, leg_handles))
+    plt.legend(by_label.values(), by_label.keys(), loc="lower center", ncol=4,
+               bbox_to_anchor=(0.5, 1.0), fontsize=7)
+    
+    plt.savefig(f"plots/turbulent_intensity/turbulent_intensity_{which}_without_PUO05.png", dpi=300, bbox_inches="tight")
+    plt.close()
+    
+    

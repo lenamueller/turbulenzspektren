@@ -2,9 +2,10 @@ import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
-from setup import KERNEL_SIZE, TAPERING_SIZE, all_puos
+from setup import KERNEL_SIZE, TAPERING_SIZE, all_puos, SAMPLE_RATE, variables
 from parse import parse_data
-from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean
+from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, roll_mean, \
+    turbulente_intensitaet
 
 
 # -----------------------------------------------------------------------------
@@ -13,7 +14,6 @@ from process import detrend_signal, taper_signal, sample_freq, calc_spectrum, ro
 
 print("Process EXPE data...")
 for period in all_puos:
-
     # load data
     data = parse_data("EXPE", period)
     dt = data["Datetime"].to_numpy()
@@ -37,7 +37,39 @@ for period in all_puos:
     
     pd.DataFrame.from_dict(spectrum_data).to_csv(
             f"data/spectra_data/{period}_EXPE_spectrum_data.csv", index=False)
+    
+    # calculate turbulence intensity
+    all_timesteps = [pd.Timestamp(dt[i]) for i in range(len(dt))]
+    timesteps = [i for i in all_timesteps if i.minute % 10 == 0 and i.second == 0]
+    
+    _df = pd.DataFrame.from_dict(timeseries_data)
+    ti_data = {}
+    for var in variables["EXPE"]:    
+        ti_abs = []
+        ti_rel = []
+        
+        for i in range(len(timesteps)-1):
+            left = timesteps[i]
+            right = timesteps[i+1]
+            _df_sel = _df[(_df["datetime"] >= left) & (_df["datetime"] < right)]
 
+            ti_abs.append(turbulente_intensitaet(
+                    y=_df_sel[var].to_numpy(), 
+                    rel=False
+                ))
+            ti_rel.append(turbulente_intensitaet(
+                    y=_df_sel[var].to_numpy(), 
+                    rel=True
+                ))
+            
+        ti_data["from"] = [timesteps[i] for i in range(len(timesteps)-1)]
+        ti_data["to"] = [timesteps[i+1] for i in range(len(timesteps)-1)]
+        ti_data[f"{var}_abs"] = ti_abs
+        ti_data[f"{var}_rel"] = ti_rel
+
+    pd.DataFrame.from_dict(ti_data).to_csv(
+        f"data/turbulence_intensity_data/{period}_EXPE_turbulence_intensity_data.csv", index=False)
+    
 # -----------------------------------------------------------------------------
 # process SONIC data
 # -----------------------------------------------------------------------------
@@ -87,6 +119,38 @@ for period in all_puos:
     pd.DataFrame.from_dict(spectrum_data).to_csv(
             f"data/spectra_data/{period}_SONIC_spectrum_data.csv", index=False)
 
+    # calculate turbulence intensity
+    all_timesteps = [pd.Timestamp(dt[i]) for i in range(len(dt))]
+    timesteps = [i for i in all_timesteps if i.minute % 10 == 0 and i.second == 0 and i.microsecond == 0]
+    
+    _df = pd.DataFrame.from_dict(timeseries_data)
+    ti_data = {}
+    for var in variables["SONIC"]:    
+        ti_abs = []
+        ti_rel = []
+        
+        for i in range(len(timesteps)-1):
+            left = timesteps[i]
+            right = timesteps[i+1]
+            _df_sel = _df[(_df["datetime"] >= left) & (_df["datetime"] < right)]
+
+            ti_abs.append(turbulente_intensitaet(
+                    y=_df_sel[var].to_numpy(), 
+                    rel=False
+                ))
+            ti_rel.append(turbulente_intensitaet(
+                    y=_df_sel[var].to_numpy(), 
+                    rel=True
+                ))
+            
+        ti_data["from"] = [timesteps[i] for i in range(len(timesteps)-1)]
+        ti_data["to"] = [timesteps[i+1] for i in range(len(timesteps)-1)]
+        ti_data[f"{var}_abs"] = ti_abs
+        ti_data[f"{var}_rel"] = ti_rel
+
+    pd.DataFrame.from_dict(ti_data).to_csv(
+        f"data/turbulence_intensity_data/{period}_SONIC_turbulence_intensity_data.csv", index=False)
+    
 # -----------------------------------------------------------------------------
 # process EXPE and SONIC data and store them in one file
 # -----------------------------------------------------------------------------
