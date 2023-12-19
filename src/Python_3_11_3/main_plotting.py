@@ -7,7 +7,7 @@ from parse import get_var
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
     plot_t_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
     plot_temporal_coverage, plot_patterns, plot_mean_corr, \
-    plot_turb_intensity
+    plot_turb_intensity, plot_wind_spectrum_comp
     
 
 # plotting agenda
@@ -78,6 +78,7 @@ if PLOT_SPECTRUM_DATA:
     plot_spectrum_comp("EXPE")
     plot_spectrum_comp("SONIC")
     plot_t_spectrum_comp()
+    plot_wind_spectrum_comp()
     
     # plot spectra correlation matrix
     plot_mean_corr()

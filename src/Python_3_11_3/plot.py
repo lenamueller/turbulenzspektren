@@ -141,7 +141,6 @@ def plot_t_spectrum_comp() -> None:
     
     var = "t_spec"
     fig, ax = plt.subplots(3, 4, figsize=(19, 11), sharex=False, sharey=False)
-    fig.suptitle("Temperatur [°C]\n", **title_kwargs)
 
     for i, puo in enumerate(all_puos):
         
@@ -152,10 +151,10 @@ def plot_t_spectrum_comp() -> None:
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
             if device == "EXPE":
                 ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="b", label="EXPE (1 Hz)")
+                                lw=0.5, c="b", label="Temperatur in °C (EXPE, 1 Hz)")
             else:
                 ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="g", label="SONIC (2 Hz)")
+                                lw=0.5, c="g", label="Temperatur in °C (SONIC, 2 Hz)")
             
         _, _, start_datetime, end_datetime, date, _ = metadata(puo)
         ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
@@ -185,6 +184,52 @@ def plot_t_spectrum_comp() -> None:
             
     plt.tight_layout()
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+def plot_wind_spectrum_comp() -> None:
+    """Plots a comparison of all smoothed spectra for both devices."""
+    
+    fig, ax = plt.subplots(3, 4, figsize=(19, 11), sharex=False, sharey=False)
+
+    for i, puo in enumerate(all_puos):
+        
+        ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
+                                    **range_kw_args)
+        
+        # horizontal wind
+        df = pd.read_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv")
+        ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["wind_h_spec"], win_len=10), 
+                        lw=0.5, c="b", label="Horizontalwind in m/s (2 Hz)")
+        
+        # vertical wind
+        df = pd.read_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv")
+        ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["wind_z_spec"], win_len=10), 
+                        lw=0.5, c="g", label="Vertikalwind in m/s (2 Hz)")
+            
+        _, _, start_datetime, end_datetime, date, _ = metadata(puo)
+        ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
+        
+        ax[i // 4, i % 4].set_xlim((1e-4, 1e-1))
+        ax[i // 4, i % 4].set_xticks([1e-4, 1e-3, 1e-2, 1e-1])
+        ax[i // 4, i % 4].set_xscale("log")
+        ax[i // 4, i % 4].set_xlabel("Frequenz [Hz]")
+        ax[i // 4, i % 4].grid()
+        
+        ax2 = ax[i // 4, i % 4].secondary_xaxis(-0.35, functions=(lambda x: 1/x, lambda x: 1/x))
+        ax2.set_xticks([10000, 1000, 100, 10])
+        ax2.set_xlabel("Periodendauer [s]")
+    
+    
+    fig.text(-0.02, 0.5, "Spektrale Energiedichte * Frequenz", va='center', rotation='vertical', fontsize=12)
+    ax[2, 3].axis('off')
+    lns = ln1+ln2
+    labs = [l.get_label() for l in lns]
+    leg = ax[2, 3].legend(lns, labs, loc="center", fontsize="14")
+    for line in leg.get_lines():
+        line.set_linewidth(4.0)
+            
+    plt.tight_layout()
+    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png", dpi=300, bbox_inches="tight")
     plt.close()
 
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> None:
