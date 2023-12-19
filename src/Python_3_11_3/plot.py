@@ -151,10 +151,10 @@ def plot_t_spectrum_comp() -> None:
             df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
             if device == "EXPE":
                 ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="b", label="Temperatur in °C (EXPE, 1 Hz)")
+                                lw=0.5, c="darkorange", ls="-", label="Temperatur in °C (EXPE, 1 Hz)")
             else:
                 ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="g", label="Temperatur in °C (SONIC, 2 Hz)")
+                                lw=0.5, c="r", ls="-", label="Temperatur in °C (SONIC, 2 Hz)")
             
         _, _, start_datetime, end_datetime, date, _ = metadata(puo)
         ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
@@ -232,13 +232,13 @@ def plot_wind_spectrum_comp() -> None:
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> None:
+def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> dict:
     """Plots the average of a time series."""
 
     fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10,7))
     fig.suptitle(title, **title_kwargs)
     
-    colors = ["b", "cyan", "yellow", "orange", "r"]
+    colors = ["b", "cyan", "gold", "orange", "r"]
     lw = {"EXPE": 0.8, "SONIC": 0.4}
     
     # plot detrended signal
@@ -252,7 +252,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
     ref = roll_mean(y_det, win_len=60*60*SAMPLE_RATE[device])
     
     diff_lists = []
-    error_metrics = {"Mean": [], "Std": [], "Range": []}
+    error_metrics = {"Mean": [], "Std": [], "Lower Range": [], "Upper Range": []}
     
     for i, win_len in enumerate(win_lens):
         
@@ -267,12 +267,14 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
         diff = [i-j for i, j in zip(y_roll, ref)]
         diff_lists.append(diff)
         error_metrics["Std"].append(np.round(np.sum([x**2 for x in diff])/(len(ref)-1), 3))
-        error_metrics["Range"].append((np.round(np.max(diff), 3), np.round(np.min(diff), 3)))
+        error_metrics["Lower Range"].append(np.round(np.min(diff), 3))
+        error_metrics["Upper Range"].append(np.round(np.max(diff), 3))
+        error_metrics["Mean"].append(np.round(np.mean(diff), 3))
 
     # plot deviation from reference    
     ax[2].set_title("C. Abweichung vom Referenzwert (60 min - Mittel)", loc="left")
     ax[2].set_xticks(np.arange(5))
-    ax[2].set_xticklabels([f"""{WINDOWS_MIN[i]} min \n Std = {error_metrics['Std'][i]} \n Range = {error_metrics['Range'][i]}""" for i in range(len(WINDOWS_MIN))])
+    ax[2].set_xticklabels([f"""{WINDOWS_MIN[i]} min \n Std = {error_metrics['Std'][i]} \n Range = ({error_metrics['Lower Range'][i]}, {error_metrics['Upper Range'][i]})""" for i in range(len(WINDOWS_MIN))])
     
     sns.violinplot(data=diff_lists, ax=ax[2], palette=colors, 
                    alpha=0.5, saturation=0.8,
@@ -286,6 +288,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
     plt.tight_layout()
     plt.savefig(f"plots/averaging/{fn}.png", dpi=300, bbox_inches="tight")
     plt.close()
+    return error_metrics
 
 def plot_win() -> None:
     """Plots the nonparametric window functions."""
@@ -456,7 +459,7 @@ def plot_patterns(period: str) -> None:
                 lw=1.0, ls="solid", c="k")
     plt.fill_between(x, roll_mean(df["mean"]-0.5*df["std"], win_len=10),
                         roll_mean(df["mean"]+0.5*df["std"], win_len=10),
-                        color="grey", alpha=0.3, label="Konfidenzinvervall (0.5*Std)")
+                        color="grey", alpha=0.3, label="Konfidenzinvervall")
     
     # plot 30 to 60 min range
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
@@ -546,8 +549,7 @@ def plot_mean_corr():
                 center=0, 
                 annot=True, fmt=".2f",
                 linewidths=.5,
-                cmap="vlag", vmin=-1, vmax=1,
-                cbar_kws={"shrink": 0.8}
+                cmap="vlag", vmin=-1, vmax=1
                 )
     
     plt.savefig(f"plots/other/correlation_mean.png", bbox_inches="tight", dpi=300)
@@ -555,7 +557,7 @@ def plot_mean_corr():
 
 def plot_turb_intensity(which: str) -> None:
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(7, 4))
     
     colors = {
         "EXPE_t": "r",
@@ -593,14 +595,80 @@ def plot_turb_intensity(which: str) -> None:
     if which == "abs":
         pass
     else:
-        plt.ylim([0,3])
+        plt.ylim([0,3.5])
     
     leg_handles, leg_labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(leg_labels, leg_handles))
-    plt.legend(by_label.values(), by_label.keys(), loc="lower center", ncol=4,
-               bbox_to_anchor=(0.5, 1.0), fontsize=7)
+    plt.legend(by_label.values(), by_label.keys(), loc="lower center", ncol=2,
+               bbox_to_anchor=(0.5, 1.0), fontsize=8)
     
     plt.savefig(f"plots/turbulent_intensity/turbulent_intensity_{which}_without_PUO05.png", dpi=300, bbox_inches="tight")
     plt.close()
     
+def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
+    from setup import labels, all_puos
+
+    # Read data
+    df = pd.read_csv(fn)
+    df = df[df["Variable"] != "wind_z"]
+    df = df[df["Variable"] != "wind_h"]
+
+    # remove first puo from all_puos because it is an outlier
+    all_puos = all_puos[1:]
+
+    # Plot
+    _, ax = plt.subplots(nrows=2, ncols=3, figsize=(12, 8), sharey=True)
+
+    def get_data(df, device: str, puo: str, metric: str) -> list[float]:
+        """Helper function to provide data for plotting."""
+        df_sub = df.copy()
+        df_sub = df[df["Device"] == device]
+        df_sub = df_sub[df_sub["PUO"] == puo]
+        arr = df_sub[metric].to_numpy()[0]
+        arr = arr[1:-1].split(", ")
+        arr = [float(val) for val in arr]
+        return arr
+
+    offsets = np.linspace(-0.25, 0.25, 10)
+    colors = ["b", "cyan", "gold", "orange", "r"]
+
+    plotting_agenda = {
+        (0,0): "Std",
+        (1,0): "Std",
+        (0,1): "Lower Range",
+        (1,1): "Lower Range",
+        (0,2): "Upper Range",
+        (1,2): "Upper Range"
+        }
     
+    for i, puo in enumerate(all_puos):
+        off = offsets[i]
+
+        for (row_i, col_i) in [(0,0), (1,0), (0,1), (1,1), (0,2), (1,2)]:
+            barlist = ax[row_i, col_i].barh(
+                y=[j + off for j in range(5)], 
+                width=get_data(df, device="EXPE", puo=puo, metric=plotting_agenda[row_i, col_i]), 
+                height=0.1, label=puo, zorder=2)
+            for i in range(5):
+                barlist[i].set_color(colors[i])
+    
+    for (row_i, col_i) in [(0,0), (1,0), (0,1), (1,1), (0,2), (1,2)]:
+        ax[row_i, col_i].set_yticks(range(5))
+        ax[row_i, col_i].set_yticklabels([1, 5, 10, 30, 60])    
+        ax[row_i, col_i].grid(color="grey", alpha=0.4)
+        ax[row_i, 0].set_xlim([0, 2])
+        ax[row_i, 1].set_xlim([-4.5, 0])
+        ax[row_i, 2].set_xlim([0, 4.5])
+
+    ax[0,1].text(-2.5, 5.25, "EXPE", color="grey", fontsize=13, fontweight="bold")
+    ax[1,1].text(-2.5, 5.25, "SONIC", color="grey", fontsize=13, fontweight="bold")
+    for row_i in range(2):
+        ax[row_i, 0].set_ylabel("Mittelungsfenster [min]", color="grey", fontsize=11, fontweight="bold")
+        ax[row_i,0].set_title("A. Standardabweichung [°C]", loc="left", color="grey", fontsize=10, fontweight="bold")
+        ax[row_i,1].set_title("B. Maximale Unterschätzung [°C]", loc="left", color="grey", fontsize=10, fontweight="bold")
+        ax[row_i,2].set_title("C. Maximale Überschätzung [°C]", loc="left", color="grey", fontsize=10, fontweight="bold")
+
+        
+    plt.subplots_adjust(wspace=0.05, hspace=0.4)
+    plt.savefig("plots/other/error_metrics.png", dpi=300, bbox_inches="tight")
+    plt.close()

@@ -1,3 +1,4 @@
+import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -7,7 +8,7 @@ from parse import get_var
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
     plot_t_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
     plot_temporal_coverage, plot_patterns, plot_mean_corr, \
-    plot_turb_intensity, plot_wind_spectrum_comp
+    plot_turb_intensity, plot_wind_spectrum_comp, plot_error_metrics
     
 
 # plotting agenda
@@ -15,10 +16,10 @@ PLOT_TEMPORAL_COVERAGE          = False
 PLOT_TIME_SERIES                = False
 PLOT_SPECTRUM_DATA              = False
 PLOT_WINDOW_FUNCTION_INFLUENCE  = False
-PLOT_AVERAGING                  = False
-PLOT_TURBULENCE_INTENSITY       = True
+PLOT_AVERAGING                  = True
+PLOT_TURBULENCE_INTENSITY       = False
 
-TEST_MODE                       = True
+TEST_MODE                       = False
 all_puos = ["PUO_01"] if TEST_MODE else all_puos
 
 # -----------------------------------------------------------------------------
@@ -114,6 +115,7 @@ if PLOT_WINDOW_FUNCTION_INFLUENCE:
 
 if PLOT_AVERAGING:
     print("Plot averaging...")
+    error_metrics = pd.DataFrame()
     
     for period in all_puos:
         _, _, start_datetime, end_datetime, date, _ = metadata(period)
@@ -121,15 +123,26 @@ if PLOT_AVERAGING:
         for device in ["EXPE", "SONIC"]:
             print("\t", period, "&", device)
 
+
+
             for var in variables[device]:
-                plot_avg(
+                error_metrics_dict = plot_avg(
                     x=get_var(device, period, "Datetime"),
                     y=get_var(device, period, var),
                     device=device,
                     title=f"""{labels[var]}\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}\n({device}, {SAMPLE_RATE[device]} Hz)""",
                     fn=f"avg_{period}_{device}_{var}"
                     )
-        
+                
+                error_metrics_dict["PUO"] = period
+                error_metrics_dict["Device"] = device
+                error_metrics_dict["Variable"] = var
+                
+                error_metrics = error_metrics.append(error_metrics_dict, ignore_index=True)
+                
+    error_metrics.to_csv("data/avg_error_metrics.csv", index=False)
+
+    plot_error_metrics()
 
 # -----------------------------------------------------------------------------
 # plot turbulence intensity
