@@ -65,7 +65,7 @@ This plot shows the raw signal (top), the detrended signal (middle) and the tape
 #### `plots/averaging/`
 This plot shows the detrended signal (top), the rolling mean with different window sizes (middle) and the resulting fluctuations (bottom) of the temperature time series of the EXPE device on 11.08.2023 morning.
 
-<img src="plots/averaging/avg_PUO_05_EXPE_t.png" alt="plots/averaging/avg_PUO_05_EXPE_t.png" width="600"/>
+<img src="plots/averaging/avg_PUO_05_EXPE_t_60min.png" alt="plots/averaging/avg_PUO_05_EXPE_t_60min.png" width="600"/>
 
 #### `plots/spectra/`
 This plot shows the tapered signal (top) and the spectrum (middle, grey: calculated, red: smoothed with rolling mean) of the temperature time series of the EXPE device on 11.08.2023 morning. The highlighted area shows the period range from 30 to 60 minutes, where a spectral gap is expected for meteoroogical data.
@@ -76,11 +76,14 @@ This plot shows the tapered signal (top) and the spectrum (middle, grey: calcula
 
 This plot shows the comparison of all spectra of the periods under investigation of the temperature time series of the EXPE device.
 
+Temperature:
+
 <img src="plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png" alt="spectra_temporal_comparison_EXPE_SONIC_t.png" width="800"/>
 
-This plot compares the normalized spectra of different variables for the period under investigation.
+Wind:
 
-<img src="plots/spectra_comparison/spectra_variable_comparison_PUO_05.png" alt="" width=600>
+<img src="plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png" alt="spectra_temporal_comparison_SONIC_wind.png" width="800"/>
+
 
 #### `plots/sensitivity_wf`
 This plot shows the non-parametric window functions.
