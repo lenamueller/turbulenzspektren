@@ -51,7 +51,7 @@ def plot_ts(
         ax[row_i].set_xlim(x[0], x[-1])
         ax[row_i].grid(True, **grid_kwargs)
     
-    plt.savefig(f"plots/preprocessing/preprocess_{fn}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/preprocessing/preprocess_{fn}.png", dpi=600, bbox_inches="tight")
     plt.close()
     
 def plot_spectrum(
@@ -89,7 +89,7 @@ def plot_spectrum(
         ax[i].grid(True)
         ax[i].legend(loc="upper left", fontsize=12)
         
-    plt.savefig(f"plots/spectra/spec_{fn}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/spectra/spec_{fn}.png", dpi=600, bbox_inches="tight")
     plt.close()
     
 def plot_spectrum_comp(device: str) -> None:
@@ -133,7 +133,7 @@ def plot_spectrum_comp(device: str) -> None:
             
         fig.text(-0.02, 0.5, "Spektrale Energiedichte * Frequenz", va='center', rotation='vertical', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_{device}_{var}.png", dpi=300, bbox_inches="tight")
+        plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_{device}_{var}.png", dpi=600, bbox_inches="tight")
         plt.close()
 
 def plot_t_spectrum_comp() -> None:
@@ -183,7 +183,7 @@ def plot_t_spectrum_comp() -> None:
         line.set_linewidth(4.0)
             
     plt.tight_layout()
-    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=600, bbox_inches="tight")
     plt.close()
 
 def plot_wind_spectrum_comp() -> None:
@@ -229,7 +229,7 @@ def plot_wind_spectrum_comp() -> None:
         line.set_linewidth(4.0)
             
     plt.tight_layout()
-    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png", dpi=600, bbox_inches="tight")
     plt.close()
 
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> dict:
@@ -279,13 +279,13 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
     
     # create a boxplot instead of violinplot with each box have a single color from colors
     for i, diff_list in enumerate(diff_lists):
-        ax[2].boxplot(diff_list, positions=[i], widths=0.25, notch=True, 
+        ax[2].boxplot(diff_list, positions=[i], widths=0.25, notch=True, showfliers=False,
                       patch_artist=True, 
                       boxprops=dict(facecolor=colors[i], color="k", alpha=0.6),
                       medianprops=dict(color="k"),
                       whiskerprops=dict(color="k"),
                       capprops=dict(color="k"),
-                      flierprops=dict(color=colors[i], markeredgecolor="k"),
+                    #   flierprops=dict(color=colors[i], markeredgecolor="k"),
                       )
     
         
@@ -298,7 +298,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
         ax[row_i].grid(True)
     
     plt.tight_layout()
-    plt.savefig(f"plots/averaging/{fn}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/averaging/{fn}.png", dpi=600, bbox_inches="tight")
     plt.close()
     return error_metrics
 
@@ -326,7 +326,7 @@ def plot_win() -> None:
         ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)
 
     ax[0, 0].legend(loc='center')
-    plt.savefig("plots/sensitivity_wf/window_functions.png", dpi=300, bbox_inches="tight")
+    plt.savefig("plots/sensitivity_wf/window_functions.png", dpi=600, bbox_inches="tight")
     plt.close()
 
 def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> None:
@@ -349,7 +349,7 @@ def plot_win_influence(x: np.ndarray, y: np.ndarray, title: str, fn: str) -> Non
         ax[i//4, i%4].set_title(wf.__name__)
         ax[i//4, i%4].grid(which="both", axis="both", alpha=0.2)
 
-    plt.savefig(f"plots/sensitivity_wf/{fn}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/sensitivity_wf/{fn}.png", dpi=600, bbox_inches="tight")
     plt.close()
 
 def plot_temporal_coverage() -> None:
@@ -490,7 +490,7 @@ def plot_patterns(period: str) -> None:
     ax2 = ax.secondary_xaxis(-0.15, functions=(lambda x: 1/x, lambda x: 1/x))
     ax2.set_xticks([10000, 1000, 100, 10])
     ax2.set_xlabel("Periodendauer [s]")
-    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{period}.png", bbox_inches="tight", dpi=300)
+    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_{period}.png", bbox_inches="tight", dpi=600)
     plt.close()
     
     
@@ -526,7 +526,7 @@ def plot_patterns(period: str) -> None:
                 linewidths=.5,
                 cmap="vlag", vmin=-1, vmax=1,
                 )
-    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_corr_{period}.png", bbox_inches="tight", dpi=300)
+    plt.savefig(f"plots/spectra_comparison/spectra_variable_comparison_corr_{period}.png", bbox_inches="tight", dpi=600)
     plt.close()
 
     
@@ -564,7 +564,7 @@ def plot_mean_corr():
                 cmap="vlag", vmin=-1, vmax=1
                 )
     
-    plt.savefig(f"plots/other/correlation_mean.png", bbox_inches="tight", dpi=300)
+    plt.savefig(f"plots/other/correlation_mean.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 def plot_turb_intensity(which: str) -> None:
@@ -614,7 +614,7 @@ def plot_turb_intensity(which: str) -> None:
     plt.legend(by_label.values(), by_label.keys(), loc="lower center", ncol=2,
                bbox_to_anchor=(0.5, 1.0), fontsize=8)
     
-    plt.savefig(f"plots/turbulent_intensity/turbulent_intensity_{which}_without_PUO05.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"plots/turbulent_intensity/turbulent_intensity_{which}_without_PUO05.png", dpi=600, bbox_inches="tight")
     plt.close()
     
 def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
@@ -660,7 +660,7 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
             barlist = ax[row_i, col_i].barh(
                 y=[j + off for j in range(5)], 
                 width=get_data(df, device="EXPE", puo=puo, metric=plotting_agenda[row_i, col_i]), 
-                height=0.1, label=puo, zorder=2, alpha=0.6)
+                height=0.02, label=puo, zorder=2, alpha=0.8)
             for i in range(5):
                 barlist[i].set_color(colors[i])
     
@@ -682,5 +682,5 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
 
         
     plt.subplots_adjust(wspace=0.05, hspace=0.4)
-    plt.savefig("plots/other/error_metrics.png", dpi=300, bbox_inches="tight")
+    plt.savefig("plots/other/error_metrics.png", dpi=600, bbox_inches="tight")
     plt.close()
