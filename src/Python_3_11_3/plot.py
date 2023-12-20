@@ -266,21 +266,33 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
         # calculate error metrics
         diff = [i-j for i, j in zip(y_roll, ref)]
         diff_lists.append(diff)
-        error_metrics["Std"].append(np.round(np.sum([x**2 for x in diff])/(len(ref)-1), 3))
-        error_metrics["Lower Range"].append(np.round(np.min(diff), 3))
-        error_metrics["Upper Range"].append(np.round(np.max(diff), 3))
-        error_metrics["Mean"].append(np.round(np.mean(diff), 3))
+        error_metrics["Std"].append(np.round(np.sum([x**2 for x in diff])/(len(ref)-1), 2))
+        error_metrics["Lower Range"].append(np.round(np.min(diff), 2))
+        error_metrics["Upper Range"].append(np.round(np.max(diff), 2))
+        error_metrics["Mean"].append(np.round(np.mean(diff), 2))
 
     # plot deviation from reference    
+    # sns.violinplot(data=diff_lists, ax=ax[2], palette=colors, 
+    #                alpha=0.5, saturation=0.8,
+    #                inner_kws=dict(box_width=5, whis_width=2, color="grey"),
+    #                )
+    
+    # create a boxplot instead of violinplot with each box have a single color from colors
+    for i, diff_list in enumerate(diff_lists):
+        ax[2].boxplot(diff_list, positions=[i], widths=0.25, notch=True, 
+                      patch_artist=True, 
+                      boxprops=dict(facecolor=colors[i], color="k", alpha=0.6),
+                      medianprops=dict(color="k"),
+                      whiskerprops=dict(color="k"),
+                      capprops=dict(color="k"),
+                      flierprops=dict(color=colors[i], markeredgecolor="k"),
+                      )
+    
+        
     ax[2].set_title("C. Abweichung vom Referenzwert (60 min - Mittel)", loc="left")
     ax[2].set_xticks(np.arange(5))
     ax[2].set_xticklabels([f"""{WINDOWS_MIN[i]} min \n Std = {error_metrics['Std'][i]} \n Range = ({error_metrics['Lower Range'][i]}, {error_metrics['Upper Range'][i]})""" for i in range(len(WINDOWS_MIN))])
     
-    sns.violinplot(data=diff_lists, ax=ax[2], palette=colors, 
-                   alpha=0.5, saturation=0.8,
-                   inner_kws=dict(box_width=5, whis_width=2, color="grey"),
-                   
-                   )
     
     for row_i in [0, 1, 2]:
         ax[row_i].grid(True)
@@ -648,7 +660,7 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
             barlist = ax[row_i, col_i].barh(
                 y=[j + off for j in range(5)], 
                 width=get_data(df, device="EXPE", puo=puo, metric=plotting_agenda[row_i, col_i]), 
-                height=0.1, label=puo, zorder=2)
+                height=0.1, label=puo, zorder=2, alpha=0.6)
             for i in range(5):
                 barlist[i].set_color(colors[i])
     
