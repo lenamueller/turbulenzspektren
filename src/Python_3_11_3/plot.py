@@ -7,7 +7,7 @@ from matplotlib.dates import DateFormatter
 from parse import get_var
 from process import detrend_signal, taper_signal, calc_spectrum, roll_mean
 from setup import all_puos, variables, metadata, window_functions, unique_dates, \
-    labels, WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE
+    labels, WINDOWS_MIN, SAMPLE_RATE, KERNEL_SIZE, MITTELUNGSINTERVALL
 
 
 grid_kwargs =           {"color":"lightgrey", "lw":0.4}
@@ -232,6 +232,8 @@ def plot_wind_spectrum_comp() -> None:
     plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_SONIC_wind.png", dpi=600, bbox_inches="tight")
     plt.close()
 
+
+
 def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> dict:
     """Plots the average of a time series."""
 
@@ -249,7 +251,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
     
     
     win_lens = [i*60*SAMPLE_RATE[device] for i in WINDOWS_MIN]
-    ref = roll_mean(y_det, win_len=60*60*SAMPLE_RATE[device])
+    ref = roll_mean(y_det, win_len=MITTELUNGSINTERVALL*60*SAMPLE_RATE[device])
     
     diff_lists = []
     error_metrics = {"Mean": [], "Std": [], "Lower Range": [], "Upper Range": []}
@@ -289,7 +291,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
                       )
     
         
-    ax[2].set_title("C. Abweichung vom Referenzwert (60 min - Mittel)", loc="left")
+    ax[2].set_title(f"C. Abweichung vom Referenzwert ({MITTELUNGSINTERVALL} min - Mittel)", loc="left")
     ax[2].set_xticks(np.arange(5))
     ax[2].set_xticklabels([f"""{WINDOWS_MIN[i]} min \n Std = {error_metrics['Std'][i]} \n Range = ({error_metrics['Lower Range'][i]}, {error_metrics['Upper Range'][i]})""" for i in range(len(WINDOWS_MIN))])
     
@@ -298,7 +300,7 @@ def plot_avg(x: np.ndarray, y: np.ndarray, device: str, title: str, fn: str) -> 
         ax[row_i].grid(True)
     
     plt.tight_layout()
-    plt.savefig(f"plots/averaging/{fn}.png", dpi=600, bbox_inches="tight")
+    plt.savefig(f"plots/averaging/{fn}_{MITTELUNGSINTERVALL}min.png", dpi=600, bbox_inches="tight")
     plt.close()
     return error_metrics
 
@@ -692,5 +694,5 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
 
         
     plt.subplots_adjust(wspace=0.05, hspace=0.4)
-    plt.savefig("plots/other/error_metrics.png", dpi=600, bbox_inches="tight")
+    plt.savefig(f"plots/other/error_metrics_{MITTELUNGSINTERVALL}min.png", dpi=600, bbox_inches="tight")
     plt.close()
