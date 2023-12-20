@@ -629,7 +629,7 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
     all_puos = all_puos[1:]
 
     # Plot
-    _, ax = plt.subplots(nrows=2, ncols=3, figsize=(12, 8), sharey=True)
+    _, ax = plt.subplots(nrows=2, ncols=3, figsize=(11, 8), sharey=True)
 
     def get_data(df, device: str, puo: str, metric: str) -> list[float]:
         """Helper function to provide data for plotting."""
@@ -657,13 +657,23 @@ def plot_error_metrics(fn: str = "data/avg_error_metrics.csv") -> None:
         off = offsets[i]
 
         for (row_i, col_i) in [(0,0), (1,0), (0,1), (1,1), (0,2), (1,2)]:
-            barlist = ax[row_i, col_i].barh(
+
+            # EXPE
+            barlist = ax[0, col_i].barh(
                 y=[j + off for j in range(5)], 
                 width=get_data(df, device="EXPE", puo=puo, metric=plotting_agenda[row_i, col_i]), 
                 height=0.02, label=puo, zorder=2, alpha=0.8)
             for i in range(5):
                 barlist[i].set_color(colors[i])
-    
+        
+            # SONIC
+            barlist = ax[1, col_i].barh(
+                y=[j + off for j in range(5)], 
+                width=get_data(df, device="SONIC", puo=puo, metric=plotting_agenda[row_i, col_i]), 
+                height=0.02, label=puo, zorder=2, alpha=0.8)
+            for i in range(5):
+                barlist[i].set_color(colors[i])
+                
     for (row_i, col_i) in [(0,0), (1,0), (0,1), (1,1), (0,2), (1,2)]:
         ax[row_i, col_i].set_yticks(range(5))
         ax[row_i, col_i].set_yticklabels([1, 5, 10, 30, 60])    
