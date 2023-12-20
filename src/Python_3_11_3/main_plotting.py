@@ -6,17 +6,17 @@ from setup import SAMPLE_RATE, variables, labels, all_puos, metadata
 from parse import get_var
 
 from plot import plot_ts, plot_spectrum, plot_spectrum_comp, \
-    plot_t_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
+    plot_spectrum_comp, plot_win, plot_win_influence, plot_avg, \
     plot_temporal_coverage, plot_patterns, plot_mean_corr, \
-    plot_turb_intensity, plot_wind_spectrum_comp, plot_error_metrics
+    plot_turb_intensity, plot_spectrum_comp_all, plot_error_metrics
     
 
 # plotting agenda
 PLOT_TEMPORAL_COVERAGE          = False
 PLOT_TIME_SERIES                = False
-PLOT_SPECTRUM_DATA              = False
+PLOT_SPECTRUM_DATA              = True
 PLOT_WINDOW_FUNCTION_INFLUENCE  = False
-PLOT_AVERAGING                  = True
+PLOT_AVERAGING                  = False
 PLOT_TURBULENCE_INTENSITY       = False
 
 TEST_MODE                       = False
@@ -57,20 +57,20 @@ if PLOT_TIME_SERIES:
 if PLOT_SPECTRUM_DATA:
     print("Plot spectrum data...")
     for period in all_puos:
-        _, _, start_datetime, end_datetime, date, _ = metadata(period)
+    #     _, _, start_datetime, end_datetime, date, _ = metadata(period)
         
-        for device in ["EXPE", "SONIC"]:
-            print("\t", period, "&", device)
+    #     for device in ["EXPE", "SONIC"]:
+    #         print("\t", period, "&", device)
             
-            # plot spectrum
-            for var in variables[device]:
-                plot_spectrum(
-                    x=get_var(device, period, "Datetime"),
-                    y=get_var(device, period, var),
-                    fn=f"{period}_{device}_{var}",
-                    ylabel=labels[var], 
-                    title = f"""{labels[var]}\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}\n({device}, {SAMPLE_RATE[device]} Hz)"""
-                    )
+    #         # plot spectrum
+    #         for var in variables[device]:
+    #             plot_spectrum(
+    #                 x=get_var(device, period, "Datetime"),
+    #                 y=get_var(device, period, var),
+    #                 fn=f"{period}_{device}_{var}",
+    #                 ylabel=labels[var], 
+    #                 title = f"""{labels[var]}\n{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}\n({device}, {SAMPLE_RATE[device]} Hz)"""
+    #                 )
         
         # plot comparison normalized spectra
         plot_patterns(period)
@@ -78,8 +78,8 @@ if PLOT_SPECTRUM_DATA:
     # plot comparison smoothed spectra
     plot_spectrum_comp("EXPE")
     plot_spectrum_comp("SONIC")
-    plot_t_spectrum_comp()
-    plot_wind_spectrum_comp()
+    plot_spectrum_comp_all()
+    # plot_wind_spectrum_comp()
     
     # plot spectra correlation matrix
     plot_mean_corr()

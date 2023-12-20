@@ -136,10 +136,9 @@ def plot_spectrum_comp(device: str) -> None:
         plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_{device}_{var}.png", dpi=600, bbox_inches="tight")
         plt.close()
 
-def plot_t_spectrum_comp() -> None:
+def plot_spectrum_comp_all() -> None:
     """Plots a comparison of all smoothed spectra for both devices."""
     
-    var = "t_spec"
     fig, ax = plt.subplots(3, 4, figsize=(19, 11), sharex=False, sharey=False)
 
     for i, puo in enumerate(all_puos):
@@ -147,15 +146,25 @@ def plot_t_spectrum_comp() -> None:
         ax[i // 4, i % 4].axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", 
                                     **range_kw_args)
         
-        for device in ["EXPE", "SONIC"]:
-            df = pd.read_csv(f"data/spectra_data/{puo}_{device}_spectrum_data.csv")
-            if device == "EXPE":
-                ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="darkorange", ls="-", label="Temperatur in °C (EXPE, 1 Hz)")
-            else:
-                ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df[var], win_len=10), 
-                                lw=0.5, c="r", ls="-", label="Temperatur in °C (SONIC, 2 Hz)")
+        # EXPE temp
+        df = pd.read_csv(f"data/spectra_data/{puo}_EXPE_spectrum_data.csv")
+        ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["t_spec"], win_len=10), 
+                        lw=0.5, c="darkorange", ls="-", label="Temperatur in °C (EXPE, 1 Hz)")
+        # SONIC temp
+        df = pd.read_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv")
+        ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["t_spec"], win_len=10), 
+                        lw=0.5, c="r", ls="-", label="Temperatur in °C (SONIC, 2 Hz)")
             
+        # horizontal wind
+        df = pd.read_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv")
+        ln1 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["wind_h_spec"], win_len=10), 
+                        lw=0.5, c="b", label="Horizontalwind in m/s (2 Hz)")
+        
+        # vertical wind
+        df = pd.read_csv(f"data/spectra_data/{puo}_SONIC_spectrum_data.csv")
+        ln2 = ax[i // 4, i % 4].plot(df["frequencies"], roll_mean(df["wind_z_spec"], win_len=10), 
+                        lw=0.5, c="g", label="Vertikalwind in m/s (2 Hz)")
+        
         _, _, start_datetime, end_datetime, date, _ = metadata(puo)
         ax[i // 4, i % 4].set_title(f"{date}: {start_datetime[10:-3]} - {end_datetime[10:-3]}", **title_kwargs)
         
@@ -183,7 +192,7 @@ def plot_t_spectrum_comp() -> None:
         line.set_linewidth(4.0)
             
     plt.tight_layout()
-    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison_EXPE_SONIC_t.png", dpi=600, bbox_inches="tight")
+    plt.savefig(f"plots/spectra_comparison/spectra_temporal_comparison.png", dpi=600, bbox_inches="tight")
     plt.close()
 
 def plot_wind_spectrum_comp() -> None:
@@ -469,11 +478,11 @@ def plot_patterns(period: str) -> None:
              lw=1.0, ls="solid", c="darkgreen", alpha=0.6)
     
     # plot mean and confidence interval
-    plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mittelwert",
-                lw=1.0, ls="solid", c="k")
-    plt.fill_between(x, roll_mean(df["mean"]-0.5*df["std"], win_len=10),
-                        roll_mean(df["mean"]+0.5*df["std"], win_len=10),
-                        color="grey", alpha=0.3, label="Konfidenzinvervall")
+    # plt.plot(x, roll_mean(df["mean"], win_len=10), label="Mittelwert",
+    #             lw=1.0, ls="solid", c="k")
+    # plt.fill_between(x, roll_mean(df["mean"]-0.5*df["std"], win_len=10),
+    #                     roll_mean(df["mean"]+0.5*df["std"], win_len=10),
+    #                     color="grey", alpha=0.3, label="Konfidenzinvervall")
     
     # plot 30 to 60 min range
     plt.axvspan(1/(60*30), 1/(60*60), label="30 min - 60 min", **range_kw_args)
